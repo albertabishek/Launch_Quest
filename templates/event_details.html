@@ -1,0 +1,1316 @@
+{% extends 'base.html' %}
+
+{% block title %}Event Details - {{ quiz.title }}{% endblock %}
+
+{% block styles %}
+<style>
+  :root {
+    --primary: #8a2be2;
+    --primary-light: #9c4dff;
+    --secondary: #5e17eb;
+    --accent: #ff6b6b;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --dark: #121220;
+    --darker: #0c0c18;
+    --light: #f8f9fa;
+    --gray: #a0a0c0;
+    --card-bg: rgba(26, 26, 46, 0.7);
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.2);
+  }
+  
+  .event-details-container {
+    max-width: 1200px;
+    margin: 5rem auto 2rem;
+    padding: 0 1.5rem;
+  }
+  
+  .event-hero {
+    background: linear-gradient(135deg, var(--darker), var(--dark));
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .hero-content {
+    padding: 2rem 1.5rem;
+    position: relative;
+    z-index: 2;
+    text-align: center;
+  }
+  
+  .event-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 0.8rem;
+    line-height: 1.2;
+  }
+  
+  .event-subtitle {
+    font-size: 1.2rem;
+    color: var(--gray);
+    max-width: 800px;
+    margin: 0 auto 1.5rem;
+  }
+  
+  .event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    background: var(--glass);
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(5px);
+  }
+  
+  .meta-icon {
+    color: var(--primary);
+    font-size: 1.2rem;
+  }
+  
+  .meta-text {
+    text-align: left;
+  }
+  
+  .meta-label {
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-bottom: 0.1rem;
+  }
+  
+  .meta-value {
+    font-weight: 600;
+    color: var(--light);
+    font-size: 1rem;
+  }
+  
+  .event-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .event-section {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .event-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(138, 43, 226, 0.2);
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.2rem;
+    color: var(--light);
+    position: relative;
+    padding-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  
+  .section-title:hover::after {
+    width: 100%;
+  }
+  
+  .section-title i {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+    color: var(--primary);
+    transition: transform 0.3s ease;
+  }
+  
+  .section-title.collapsed i {
+    transform: rotate(-90deg);
+  }
+  
+  .section-content {
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.4s ease;
+  }
+  
+  .section-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+  }
+  
+  .quiz-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.2rem;
+  }
+  
+  .detail-card {
+    background: rgba(20, 20, 36, 0.5);
+    border-radius: 10px;
+    padding: 1.2rem;
+    border: 1px solid var(--glass-border);
+    transition: all 0.3s ease;
+  }
+  
+  .detail-card:hover {
+    border-color: var(--primary-light);
+    transform: translateY(-3px);
+  }
+  
+  .detail-icon {
+    font-size: 1.8rem;
+    color: var(--primary);
+    margin-bottom: 0.8rem;
+  }
+  
+  .detail-title {
+    font-size: 1.1rem;
+    color: var(--light);
+    margin-bottom: 0.4rem;
+  }
+  
+  .detail-value {
+    font-size: 1rem;
+    color: var(--gray);
+  }
+  
+  .question-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+  }
+  
+  .question-type {
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    background: rgba(138, 43, 226, 0.15);
+    color: #b89cff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .question-type:hover {
+    background: rgba(138, 43, 226, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  .prize-distribution {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(37, 211, 102, 0.1));
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-top: 1.2rem;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+  }
+  
+  .prize-distribution h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1.2rem;
+    color: #7dff9e;
+    text-align: center;
+  }
+  
+  .prize-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem;
+  }
+  
+  .prize-item {
+    background: rgba(20, 20, 36, 0.5);
+    border-radius: 10px;
+    padding: 1.2rem;
+    text-align: center;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .prize-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .prize-rank {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffd700;
+    margin-bottom: 0.4rem;
+  }
+  
+  .prize-amount {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--light);
+    margin-bottom: 0.4rem;
+  }
+  
+  .prize-label {
+    font-size: 0.85rem;
+    color: var(--gray);
+  }
+  
+  .action-section {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(20, 20, 36, 0.4);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    margin: 0.5rem 0;
+    width: 100%;
+    max-width: 350px;
+    justify-content: center;
+  }
+  
+  .action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    z-index: -1;
+    transition: transform 0.5s ease;
+  }
+  
+  .action-button:hover::before {
+    transform: scale(1.05);
+  }
+  
+  .action-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.4);
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 0.7rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 350px;
+  }
+  
+  .status-badge.verified {
+    background: linear-gradient(90deg, var(--success), #1e7e34);
+    color: white;
+  }
+  
+  .status-badge.pending {
+    background: linear-gradient(90deg, var(--warning), #e0a800);
+    color: black;
+  }
+  
+  .status-badge.rejected {
+    background: linear-gradient(90deg, var(--danger), #c82333);
+    color: white;
+  }
+  
+  .status-badge.registration-closed {
+    background: linear-gradient(90deg, var(--danger), #c82333);
+    color: white;
+  }
+
+  .countdown-container {
+    background: rgba(20, 20, 36, 0.5);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin: 1.5rem auto;
+    max-width: 500px;
+    border: 1px solid var(--primary-light);
+    text-align: center;
+  }
+  
+  .countdown-title {
+    font-size: 1.3rem;
+    color: var(--light);
+    margin-bottom: 0.8rem;
+  }
+  
+  .countdown-timer {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-top: 1.2rem;
+    flex-wrap: wrap;
+  }
+  
+  .countdown-unit {
+    background: var(--darker);
+    border-radius: 10px;
+    padding: 0.8rem;
+    min-width: 70px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    flex: 1;
+    max-width: 90px;
+  }
+  
+  .countdown-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+  }
+  
+  .countdown-label {
+    font-size: 0.85rem;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 0.4rem;
+  }
+  
+  .registration-form {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+    border: 1px solid var(--glass-border);
+  }
+  
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+    color: var(--light);
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 10px;
+    background: rgba(20, 20, 36, 0.5);
+    border: 1px solid var(--glass-border);
+    color: var(--light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .form-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
+    outline: none;
+  }
+  
+  .screenshot-preview {
+    max-width: 100%;
+    border-radius: 10px;
+    border: 2px dashed var(--glass-border);
+    margin-top: 0.8rem;
+    display: none;
+  }
+  
+  .rejection-notice {
+    background: rgba(220, 53, 69, 0.15);
+    border-radius: 12px;
+    padding: 1.2rem;
+    margin-top: 1.5rem;
+  }
+  
+  .section-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .tab-button {
+    padding: 0.6rem 1.2rem;
+    background: rgba(30, 30, 46, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    cursor: pointer;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .tab-button.active {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    color: white;
+    border-color: transparent;
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+  }
+  
+  .tab-button.hidden {
+    display: none;
+  }
+  
+  .tab-content.hidden {
+    display: none;
+  }
+  
+  .registration-closed-banner {
+    background: rgba(220, 53, 69, 0.15);
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+    margin-top: 1.5rem;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .event-details-container {
+      margin: 4rem auto 1.5rem;
+      padding: 0 1rem;
+    }
+    
+    .event-hero {
+      border-radius: 16px;
+      margin-bottom: 1rem;
+    }
+    
+    .hero-content {
+      padding: 1.5rem 1rem;
+    }
+    
+    .event-title {
+      font-size: 1.8rem;
+    }
+    
+    .event-subtitle {
+      font-size: 1.1rem;
+    }
+    
+    .meta-item {
+      width: 100%;
+      padding: 0.8rem;
+    }
+    
+    .section-title {
+      font-size: 1.3rem;
+    }
+    
+    .countdown-unit {
+      min-width: 60px;
+      padding: 0.6rem;
+    }
+    
+    .countdown-value {
+      font-size: 1.8rem;
+    }
+    
+    .detail-card {
+      width: 100%;
+    }
+     
+    
+    .quiz-details-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .prize-list {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .event-title {
+      font-size: 1.6rem;
+    }
+    
+    .event-subtitle {
+      font-size: 1rem;
+    }
+    
+    .countdown-timer {
+      gap: 0.4rem;
+    }
+    
+    .countdown-unit {
+      min-width: 55px;
+      padding: 0.5rem;
+      max-width: 70px;
+    }
+    
+    .countdown-value {
+      font-size: 1.5rem;
+    }
+    
+    .countdown-label {
+      font-size: 0.75rem;
+    }
+    
+    .action-button {
+      padding: 0.9rem 1.5rem;
+      font-size: 1rem;
+    }
+    
+    .event-meta {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .tab-button {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+  }
+  
+  @media (max-width: 360px) {
+    .event-title {
+      font-size: 1.4rem;
+    }
+    
+    .countdown-unit {
+      min-width: 45px;
+      max-width: 60px;
+    }
+    
+    .countdown-value {
+      font-size: 1.3rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="event-details-container">
+  <!-- Hero Section -->
+  <div class="event-hero">
+    <div class="hero-content">
+      <h1 class="event-title">{{ quiz.title }}</h1>
+      <p class="event-subtitle">{{ quiz.topic }}</p>
+      
+      <div class="event-meta">
+        <div class="meta-item">
+          <i class="fas fa-user meta-icon"></i>
+          <div class="meta-text">
+            <div class="meta-label">Creator</div>
+            <div class="meta-value">{{ quiz.creator.username }}</div>
+          </div>
+        </div>
+        
+        <div class="meta-item">
+          <i class="fas fa-calendar-alt meta-icon"></i>
+          <div class="meta-text">
+            <div class="meta-label">Starts</div>
+            <div class="meta-value">{{ quiz.start_time | to_localtime(current_user.timezone)   }}</div>
+          </div>
+        </div>
+        
+        <div class="meta-item">
+          <i class="fas fa-users meta-icon"></i>
+          <div class="meta-text">
+            <div class="meta-label">Participants</div>
+            <div class="meta-value" id="participant-count">{{ reg_count }} / {{ quiz.max_users }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="section-tabs" id="section-tabs">
+    <button class="tab-button active" data-tab="timeline">Timeline</button>
+    <button class="tab-button" data-tab="details">Details</button>
+    {% if quiz.is_paid_event and quiz.winner_prizes %}
+      <button class="tab-button" data-tab="prizes">Prizes</button>
+    {% endif %}
+    <!-- Dynamic tab for registration -->
+    <button class="tab-button {% if registration_closed or (registration and registration.status == 'verified') %}hidden{% endif %}" 
+            id="register-tab-button"
+            data-tab="register">
+      {% if registration and registration.status == 'rejected' %}Resubmit{% else %}Register{% endif %}
+    </button>
+  </div>
+  
+  <div class="event-grid">
+    <!-- Timeline & Countdown Section -->
+    <div class="event-section tab-content active" id="timeline-tab">
+      <h2 class="section-title">
+        <i class="fas fa-clock"></i> Event Timeline
+      </h2>
+      
+      <div class="section-content">
+        <div class="quiz-details-grid">
+          <div class="detail-card">
+            <i class="fas fa-play-circle detail-icon"></i>
+            <h3 class="detail-title">Starts</h3>
+            <p class="detail-value">{{ quiz.start_time | to_localtime(current_user.timezone)   }}</p>
+          </div>
+          
+          <div class="detail-card">
+            <i class="fas fa-stop-circle detail-icon"></i>
+            <h3 class="detail-title">Registration Ends</h3>
+            <p class="detail-value">{{ quiz.registration_end_time | to_localtime(current_user.timezone)   }}</p>
+          </div>
+        </div>
+        
+        {% if quiz.start_time and (quiz.start_time | make_aware > now) %}
+        <div class="countdown-container">
+          <h3 class="countdown-title">Quiz Starts In</h3>
+          <div class="countdown-timer" id="countdown-timer">
+            <div class="countdown-unit">
+              <div class="countdown-value" id="days">00</div>
+              <div class="countdown-label">Days</div>
+            </div>
+            <div class="countdown-unit">
+              <div class="countdown-value" id="hours">00</div>
+              <div class="countdown-label">Hours</div>
+            </div>
+            <div class="countdown-unit">
+              <div class="countdown-value" id="minutes">00</div>
+              <div class="countdown-label">Minutes</div>
+            </div>
+            <div class="countdown-unit">
+              <div class="countdown-value" id="seconds">00</div>
+              <div class="countdown-label">Seconds</div>
+            </div>
+          </div>
+        </div>
+        {% elif quiz.start_time and (quiz.start_time | make_aware) <= now  %}
+          <div class="countdown-container">
+            <h3 class="countdown-title">Event Status</h3>
+            <div class="detail-card" style="text-align: center; padding: 1.5rem;">
+              <i class="fas fa-play-circle" style="font-size: 2rem; color: var(--success); margin-bottom: 1rem;"></i>
+              <h3>Quiz Has Started!</h3>
+              <p>You can now participate if you're registered</p>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Quiz Details Section -->
+    <div class="event-section tab-content" id="details-tab">
+      <h2 class="section-title">
+        <i class="fas fa-info-circle"></i> Quiz Details
+      </h2>
+       <div class="detail-card" style="margin:10px ; margin-bottom: 20px; " >
+            <i class="fas fa-book-open detail-icon"></i>
+            <h3 class="detail-title">Topic</h3>
+            <p class="detail-value">{{ quiz.topic }}</p>
+          </div>
+
+        <div class="section-content" style="margin:10px ;">
+        <div class="quiz-details-grid">
+          <div class="detail-card">
+            <i class="fas fa-question-circle detail-icon"></i>
+            <h3 class="detail-title">Questions</h3>
+            <p class="detail-value">{{ quiz.num_questions }} questions</p>
+          </div>
+          
+          <div class="detail-card">
+            <i class="fas fa-tachometer-alt detail-icon"></i>
+            <h3 class="detail-title">Difficulty</h3>
+            <p class="detail-value">{{ quiz.difficulty | capitalize }}</p>
+          </div>
+          
+          <div class="detail-card">
+            <i class="fas fa-language detail-icon"></i>
+            <h3 class="detail-title">Language</h3>
+            <p class="detail-value">{{ quiz.language | upper }}</p>
+          </div>
+          
+          <div class="detail-card">
+            <i class="fas fa-clock detail-icon"></i>
+            <h3 class="detail-title">Time Limit</h3>
+            <p class="detail-value">{{ quiz.time_limit }} minutes</p>
+          </div>
+          
+          <div class="detail-card">
+            <i class="fas fa-puzzle-piece detail-icon"></i>
+            <h3 class="detail-title">Question Types</h3>
+            <div class="question-types">
+              {% for type in quiz.question_types.split(',') %}
+                <span class="question-type">{{ type | replace('-', ' ') | title }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Prize Section -->
+    {% if quiz.is_paid_event and quiz.winner_prizes %}
+    <div class="event-section tab-content" id="prizes-tab">
+      <h2 class="section-title">
+        <i class="fas fa-trophy"></i> Prize Distribution
+      </h2>
+      
+      <div class="section-content">
+        <div class="prize-distribution">
+          <h3>Win Exciting Prizes</h3>
+          <div class="prize-list">
+            {% set prizes = quiz.winner_prizes.split(',') %}
+            {% for i in range(quiz.num_winners) %}
+            <div class="prize-item">
+              <div class="prize-rank"><sup>{{ loop.index|ordinal }}</sup></div>
+              <div class="prize-amount">
+                {% if quiz.prize_currency == 'INR' %}₹
+                {% elif quiz.prize_currency == 'USD' %}${% endif %}
+                {{ prizes[i] }}
+              </div>
+              <div class="prize-label">Prize</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Registration & Action Section -->
+    <div class="event-section">
+      <div class="action-section">
+        {% if registration_closed %}
+          <div class="status-badge registration-closed">
+            <i class="fas fa-ban"></i> Registration Closed
+          </div>
+        {% endif %}
+        
+        {% if registration %}
+          {% if registration.status == 'verified' %}
+            <div class="status-badge verified">
+              <i class="fas fa-check-circle"></i> Registration Verified
+            </div>
+          {% elif registration.status == 'pending' %}
+            <div class="status-badge pending">
+              <i class="fas fa-clock"></i> Registration Pending Verification
+            </div>
+          {% elif registration.status == 'rejected' %}
+            <div class="status-badge rejected">
+              <i class="fas fa-times-circle"></i> Registration Rejected
+            </div>
+          {% endif %}
+        {% endif %}
+        
+        <div id="action-button-container">
+          {% if registration and registration.status == 'verified' %}
+            {% if quiz_started %}
+              <a href="{{ url_for('quiz_taking.take_quiz', quiz_uuid=quiz.uuid) }}" 
+                 class="action-button">
+                <i class="fas fa-play-circle"></i> Start Quiz Now
+              </a>
+            {% else %}
+              <a href="#" class="action-button disabled">
+                <i class="fas fa-clock"></i> Quiz Starts Soon
+              </a>
+            {% endif %}
+          {% elif registration_closed %}
+            <button class="action-button disabled">
+              <i class="fas fa-ban"></i> Registration Closed
+            </button>
+          {% elif registration and registration.status == 'pending' %}
+            <button class="action-button disabled">
+              <i class="fas fa-hourglass-half"></i> Pending Verification
+            </button>
+          {% elif registration and registration.status == 'rejected' and not registration_closed %}
+            <a href="#register-tab" class="action-button" id="resubmit-btn">
+              <i class="fas fa-redo"></i> Resubmit Payment
+            </a>
+          {% elif not registration and not registration_closed %}
+            <a href="#register-tab" class="action-button" id="register-btn">
+              <i class="fas fa-user-plus"></i> Register Now
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    
+    <!-- Registration Form Section -->
+    <div class="event-section tab-content {% if registration_closed or (registration and registration.status == 'verified') %}hidden{% endif %}" 
+         id="register-tab">
+      <h2 class="section-title">
+        <i class="fas fa-file-alt"></i> 
+        {% if registration and registration.status == 'rejected' %}Resubmit Registration{% else %}Registration Form{% endif %}
+      </h2>
+      
+      <div class="section-content">
+        {% if registration_closed %}
+          <div class="registration-closed-banner">
+            <h3><i class="fas fa-exclamation-triangle"></i> Registration Closed</h3>
+            <p>You can no longer register for this event</p>
+          </div>
+        {% else %}
+          <div class="registration-form">
+            <form method="POST" enctype="multipart/form-data" id="registration-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" name="name" class="form-input" 
+                       value="{{ current_user.username }}" disabled required>
+              </div>
+              
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" class="form-input" 
+                       value="{{ current_user.email }}" disabled required>
+              </div>
+              
+              <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" name="phone" class="form-input" 
+                       value="{{ registration.phone if registration else '' }}" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="payment_screenshot">Payment Screenshot</label>
+                <input type="file" name="payment_screenshot" 
+                       class="form-input" accept="image/*" required>
+                <img id="screenshot-preview" class="screenshot-preview" 
+                     alt="Screenshot Preview">
+              </div>
+              
+              <button type="submit" class="action-button">
+                <i class="fas fa-paper-plane"></i> 
+                {% if registration and registration.status == 'rejected' %}
+                  Resubmit Payment
+                {% else %}
+                  Complete Registration
+                {% endif %}
+              </button>
+            </form>
+          </div>
+          
+          {% if registration and registration.status == 'rejected' and registration.reason %}
+            <div class="rejection-notice">
+              <h3 class="section-title">
+                <i class="fas fa-exclamation-circle"></i> Rejection Reason
+              </h3>
+              <div class="detail-card">
+                <p>{{ registration.reason }}</p>
+              </div>
+            </div>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // State management
+  const quizData = {
+    startTime: new Date("{{ quiz.start_time | utc_isoformat }}"),
+    regEndTime: new Date("{{ quiz.registration_end_time | utc_isoformat }}"),
+    maxUsers: {{ quiz.max_users }},
+    currentParticipants: {{ reg_count }},
+    registrationStatus: "{{ registration.status if registration else 'none' }}"
+  };
+  
+  const now = new Date();
+  
+  // Initialize state
+  let quizStarted = now >= quizData.startTime;
+  let registrationClosed = (
+    now >= quizData.regEndTime || 
+    quizData.currentParticipants >= quizData.maxUsers
+  );
+  
+  // Tab functionality
+  const tabs = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active class from all tabs and contents
+      tabs.forEach(t => t.classList.remove('active'));
+      tabContents.forEach(c => c.classList.remove('active'));
+      
+      // Add active class to clicked tab
+      tab.classList.add('active');
+      
+      // Show corresponding content
+      const tabId = tab.dataset.tab;
+      document.getElementById(`${tabId}-tab`).classList.add('active');
+      
+      // If register tab is clicked, scroll to it
+      if (tabId === 'register') {
+        document.getElementById('register-tab').scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+  
+  // Register/resubmit button scroll to form
+  document.getElementById('resubmit-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('register-tab').scrollIntoView({ behavior: 'smooth' });
+    tabs.forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-tab="register"]').classList.add('active');
+    tabContents.forEach(c => c.classList.remove('active'));
+    document.getElementById('register-tab').classList.add('active');
+  });
+  
+  document.getElementById('register-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('register-tab').scrollIntoView({ behavior: 'smooth' });
+    tabs.forEach(t => t.classList.remove('active'));
+    document.querySelector('[data-tab="register"]').classList.add('active');
+    tabContents.forEach(c => c.classList.remove('active'));
+    document.getElementById('register-tab').classList.add('active');
+  });
+  
+  // Screenshot preview
+  const fileInput = document.querySelector('input[name="payment_screenshot"]');
+  const preview = document.getElementById('screenshot-preview');
+  
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        if (!file.type.startsWith('image/')) {
+          alert('Please upload an image file (PNG, JPG, JPEG, GIF).');
+          this.value = '';
+          preview.style.display = 'none';
+          return;
+        }
+        
+        if (file.size > 2 * 1024 * 1024) {
+          alert('File size exceeds 2MB. Please choose a smaller file.');
+          this.value = '';
+          preview.style.display = 'none';
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = 'none';
+      }
+    });
+  }
+  
+  // Countdown timer
+  const countdownContainer = document.querySelector('.countdown-container');
+  if (countdownContainer && !quizStarted) {
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+    
+    let countdownInterval;
+    
+    function updateCountdown() {
+      const now = new Date();
+      const diff = quizData.startTime - now;
+      
+      if (diff <= 0) {
+        clearInterval(countdownInterval);
+        quizStarted = true;
+        updateUI();
+        
+        // Replace countdown with started message
+        countdownContainer.innerHTML = `
+          <div class="detail-card" style="text-align: center; padding: 1.5rem;">
+            <i class="fas fa-play-circle" style="font-size: 2rem; color: var(--success); margin-bottom: 1rem;"></i>
+            <h3>Quiz Has Started!</h3>
+            <p>You can now participate if you're registered</p>
+          </div>
+        `;
+        return;
+      }
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      daysEl.textContent = days.toString().padStart(2, '0');
+      hoursEl.textContent = hours.toString().padStart(2, '0');
+      minutesEl.textContent = minutes.toString().padStart(2, '0');
+      secondsEl.textContent = seconds.toString().padStart(2, '0');
+    }
+    
+    updateCountdown();
+    countdownInterval = setInterval(updateCountdown, 1000);
+  }
+  
+  // Update UI based on current state
+  function updateUI() {
+    const now = new Date();
+    
+    // Update registration closed state
+    registrationClosed = (
+      now >= quizData.regEndTime || 
+      quizData.currentParticipants >= quizData.maxUsers
+    );
+    
+    // Update quiz started state
+    quizStarted = now >= quizData.startTime;
+    
+    // Update tab visibility
+    const registerTabButton = document.getElementById('register-tab-button');
+    const registerTab = document.getElementById('register-tab');
+    
+    if (registrationClosed || quizData.registrationStatus === 'verified') {
+      if (registerTabButton) registerTabButton.classList.add('hidden');
+      if (registerTab) registerTab.classList.add('hidden');
+    } else {
+      if (registerTabButton) registerTabButton.classList.remove('hidden');
+      if (registerTab) registerTab.classList.remove('hidden');
+    }
+    
+    // Update action button
+    updateButtonState();
+  }
+  
+  // Real-time button state updates
+  function updateButtonState() {
+    const actionContainer = document.getElementById('action-button-container');
+    
+    let buttonHTML = '';
+    
+    if (quizData.registrationStatus === 'verified') {
+      if (quizStarted) {
+        buttonHTML = `
+          <a href="{{ url_for('quiz_taking.take_quiz', quiz_uuid=quiz.uuid) }}" 
+             class="action-button">
+            <i class="fas fa-play-circle"></i> Start Quiz Now
+          </a>
+        `;
+      } else {
+        buttonHTML = `
+          <a href="#" class="action-button disabled">
+            <i class="fas fa-clock"></i> Quiz Starts Soon
+          </a>
+        `;
+      }
+    } else if (registrationClosed) {
+      buttonHTML = `
+        <button class="action-button disabled">
+          <i class="fas fa-ban"></i> Registration Closed
+        </button>
+      `;
+    } else if (quizData.registrationStatus === 'pending') {
+      buttonHTML = `
+        <button class="action-button disabled">
+          <i class="fas fa-hourglass-half"></i> Pending Verification
+        </button>
+      `;
+    } else if (quizData.registrationStatus === 'rejected' && !registrationClosed) {
+      buttonHTML = `
+        <a href="#register-tab" class="action-button" id="resubmit-btn">
+          <i class="fas fa-redo"></i> Resubmit Payment
+        </a>
+      `;
+    } else if (!registrationClosed) {
+      buttonHTML = `
+        <a href="#register-tab" class="action-button" id="register-btn">
+          <i class="fas fa-user-plus"></i> Register Now
+        </a>
+      `;
+    } else {
+      buttonHTML = `
+        <button class="action-button disabled">
+          <i class="fas fa-ban"></i> Registration Closed
+        </button>
+      `;
+    }
+    
+    if (actionContainer) {
+      actionContainer.innerHTML = buttonHTML;
+    }
+    
+    // Reattach event listeners
+    document.getElementById('resubmit-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('register-tab').scrollIntoView({ behavior: 'smooth' });
+      tabs.forEach(t => t.classList.remove('active'));
+      document.querySelector('[data-tab="register"]').classList.add('active');
+      tabContents.forEach(c => c.classList.remove('active'));
+      document.getElementById('register-tab').classList.add('active');
+    });
+    
+    document.getElementById('register-btn')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('register-tab').scrollIntoView({ behavior: 'smooth' });
+      tabs.forEach(t => t.classList.remove('active'));
+      document.querySelector('[data-tab="register"]').classList.add('active');
+      tabContents.forEach(c => c.classList.remove('active'));
+      document.getElementById('register-tab').classList.add('active');
+    });
+  }
+  
+  // Update UI every 5 seconds
+  setInterval(updateUI, 5000);
+  
+  // Form submission with AJAX
+  const registrationForm = document.getElementById('registration-form');
+  if (registrationForm) {
+    registrationForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
+      
+      try {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        submitBtn.disabled = true;
+        
+        const response = await fetch("{{ url_for('events.event_details', quiz_uuid=quiz.uuid) }}", {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.redirected) {
+          window.location.href = response.url;
+        } else if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            // Update UI without reload
+            quizData.registrationStatus = 'pending';
+            updateUI();
+            
+            // Show success notification
+            toastr.success('Registration submitted successfully! Awaiting verification.');
+          } else {
+            toastr.error(result.message || 'Registration failed. Please try again.');
+          }
+        } else {
+          toastr.error('Registration failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toastr.error('An error occurred. Please try again.');
+      } finally {
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+      }
+    });
+  }
+  
+  // Socket.IO for real-time updates
+  {% if quiz %}
+  const socket = io('/events');
+  const quizId = "{{ quiz.id }}";
+  
+  socket.on('connect', () => {
+    socket.emit('join_quiz', { quizId: quizId });
+  });
+  
+  socket.on('registration_update', (data) => {
+    if (data.quizId == quizId) {
+      document.getElementById('participant-count').textContent = 
+        `${data.count} / {{ quiz.max_users }}`;
+      quizData.currentParticipants = data.count;
+      updateUI();
+    }
+  });
+  
+  socket.on('status_update', (data) => {
+    if (data.quizId == quizId && data.userId == "{{ current_user.id }}") {
+      quizData.registrationStatus = data.status;
+      updateUI();
+      
+      // Show status badge if needed
+      if (data.status === 'verified') {
+        document.querySelector('.action-section').insertAdjacentHTML('afterbegin', `
+          <div class="status-badge verified">
+            <i class="fas fa-check-circle"></i> Registration Verified
+          </div>
+        `);
+        toastr.success('Your registration has been verified!');
+      } else if (data.status === 'rejected') {
+        toastr.warning('Your registration was rejected. Please check the reason.');
+      }
+    }
+  });
+  {% endif %}
+  
+  // Initial UI setup
+  updateUI();
+  
+  // Collapse sections by default on mobile
+  if (window.innerWidth < 768) {
+    document.querySelectorAll('.section-title').forEach(title => {
+      title.classList.add('collapsed');
+      title.nextElementSibling.classList.add('collapsed');
+    });
+    
+    // Add click handlers to expand/collapse
+    document.querySelectorAll('.section-title').forEach(title => {
+      title.addEventListener('click', () => {
+        title.classList.toggle('collapsed');
+        title.nextElementSibling.classList.toggle('collapsed');
+      });
+    });
+  }
+});
+</script>
+{% endblock %}

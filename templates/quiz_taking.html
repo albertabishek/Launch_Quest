@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}Taking Quiz - {{ quiz.title }}{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --quiz-bg: rgba(12, 12, 24, 0.6);
+        --quiz-border: rgba(255, 255, 255, 0.2);
+        --option-bg: rgba(255, 255, 255, 0.05);
+        --option-hover-bg: rgba(255, 255, 255, 0.1);
+        --option-selected-bg: rgba(138, 43, 226, 0.3);
+        --option-selected-border: #8a2be2;
+        --text-light: #f0f0f0;
+        --text-dark: #a0a0c0;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background: radial-gradient(circle at 10% 20%, rgba(138, 43, 226, 0.3), transparent 30%),
+                    radial-gradient(circle at 80% 90%, rgba(33, 150, 243, 0.3), transparent 40%);
+        z-index: -1;
+        animation: float 20s ease-in-out infinite;
+    }
+
+    {% if quiz.interface_type == 'custom' %}
+        body {
+            background-color: {{ quiz.background_color or '#0c0c18' }};
+            {% if quiz.background_image %}
+                background-image: url('{{ url_for('static', filename='uploads/' + quiz.background_image) }}');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+            {% endif %}
+        }
+    {% endif %}
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+
+    main {
+        display: flex; justify-content: center; align-items: center;
+        min-height: 100vh; padding: 2rem 1rem;
+    }
+
+    .quiz-container {
+        width: 100%; max-width: 900px;
+        background: var(--quiz-bg); border: 1px solid var(--quiz-border);
+        border-radius: 20px; backdrop-filter: blur(15px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        padding: 2.5rem; position: relative; overflow: hidden;
+    }
+
+    .quiz-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 2rem; gap: 1.5rem;
+    }
+
+    .quiz-info h1 {
+        font-size: 1.8rem; font-weight: 700;
+        color: var(--text-light); margin: 0;
+    }
+
+    .quiz-progress { font-size: 1rem; color: var(--text-dark); }
+
+    .timer-wrapper { position: relative; width: 80px; height: 80px; }
+    .timer-wrapper svg { transform: rotate(-90deg); }
+    .timer-wrapper .timer-bg { fill: none; stroke: var(--option-bg); stroke-width: 8; }
+    .timer-wrapper .timer-fg {
+        fill: none; stroke: var(--option-selected-border);
+        stroke-width: 8; stroke-linecap: round;
+        transition: stroke-dashoffset 1s linear;
+    }
+    .timer-text {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        color: var(--text-light); font-size: 1.2rem; font-weight: 600;
+    }
+
+    .questions-wrapper { position: relative; }
+    .question {
+        width: 100%; position: absolute; opacity: 0; visibility: hidden;
+        transform: translateX(30px);
+        transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
+    }
+    .question.active {
+        position: relative; opacity: 1; visibility: visible;
+        transform: translateX(0);
+    }
+    .question-text { font-size: 1.5rem; font-weight: 500; margin-bottom: 2rem; color: var(--text-light); line-height: 1.4; }
+
+    .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .option-label {
+        display: flex; align-items: center; background: var(--option-bg);
+        border: 1px solid var(--quiz-border); padding: 1rem;
+        border-radius: 12px; cursor: pointer; transition: all 0.2s ease-in-out;
+    }
+    .option-label:hover { background: var(--option-hover-bg); transform: translateY(-3px); }
+    .option-label input { display: none; }
+    .option-label .custom-radio, .option-label .custom-checkbox {
+        width: 22px; height: 22px; border: 2px solid var(--quiz-border);
+        border-radius: 50%; margin-right: 1rem; display: flex;
+        justify-content: center; align-items: center; transition: border-color 0.2s;
+    }
+    .option-label .custom-checkbox { border-radius: 6px; }
+    .option-label .custom-radio::after, .option-label .custom-checkbox::after {
+        content: ''; width: 10px; height: 10px;
+        background: var(--option-selected-border); border-radius: 50%;
+        transform: scale(0); transition: transform 0.2s ease;
+    }
+    .option-label .custom-checkbox::after {
+        content: '\f00c'; font-family: 'Font Awesome 6 Free';
+        font-weight: 900; font-size: 12px; color: white;
+    }
+    .option-label input:checked + .custom-radio, .option-label input:checked + .custom-checkbox {
+        border-color: var(--option-selected-border);
+    }
+    .option-label input:checked + .custom-radio::after, .option-label input:checked + .custom-checkbox::after {
+        transform: scale(1);
+    }
+
+    .form-input {
+        width: 100%; padding: 1rem; border-radius: 12px;
+        background: var(--option-bg); border: 1px solid var(--quiz-border);
+        color: var(--text-light); font-size: 1rem;
+    }
+    textarea.form-input { min-height: 150px; resize: vertical; }
+
+    .navigation-buttons { display: flex; justify-content: space-between; margin-top: 2.5rem; }
+    .nav-button {
+        padding: 0.8rem 2rem; border: 1px solid var(--quiz-border);
+        background: var(--option-hover-bg); color: var(--text-light);
+        border-radius: 10px; font-weight: 600; cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .nav-button:hover { background: var(--option-selected-border); border-color: var(--option-selected-border); }
+    .nav-button.submit-btn { background: var(--option-selected-border); border-color: var(--option-selected-border); }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <div class="quiz-info">
+                <h1>{{ quiz.title }}</h1>
+                <div class="quiz-progress" id="quiz-progress">Question 1 of {{ questions|length }}</div>
+            </div>
+            {% if quiz.time_limit %}
+            <div class="timer-wrapper">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                    <circle class="timer-bg" cx="40" cy="40" r="36"></circle>
+                    <circle class="timer-fg" id="timer-fg" cx="40" cy="40" r="36"></circle>
+                </svg>
+                <div id="timer-text" class="timer-text"></div>
+            </div>
+            {% endif %}
+        </div>
+
+        <form method="POST" action="{{ url_for('quiz_taking.submit_quiz') }}" id="quiz-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="questions-wrapper">
+                {% for question in questions %}
+                {% set question_index = loop.index0 %}
+                <div class="question" data-question-index="{{ question_index }}">
+                    <p class="question-text">{{ loop.index }}. {{ question.question }}</p>
+                    <div class="options-grid">
+                        {% if question.type == 'multiple-choice' %}
+                            {% if question.is_multiple_answer %}
+                                {% for option in question.options %}
+                                <label class="option-label">
+                                    <input type="checkbox" name="answer_{{ question_index }}[]" value="{{ option }}">
+                                    <span class="custom-checkbox"></span>
+                                    <span>{{ option }}</span>
+                                </label>
+                                {% endfor %}
+                            {% else %}
+                                {% for option in question.options %}
+                                <label class="option-label">
+                                    <input type="radio" name="answer_{{ question_index }}" value="{{ option }}">
+                                    <span class="custom-radio"></span>
+                                    <span>{{ option }}</span>
+                                </label>
+                                {% endfor %}
+                            {% endif %}
+                        {% elif question.type == 'true-false' %}
+                            <label class="option-label">
+                                <input type="radio" name="answer_{{ question_index }}" value="True">
+                                <span class="custom-radio"></span>
+                                <span>True</span>
+                            </label>
+                            <label class="option-label">
+                                <input type="radio" name="answer_{{ question_index }}" value="False">
+                                <span class="custom-radio"></span>
+                                <span>False</span>
+                            </label>
+                        {% elif question.type == 'short-answer' %}
+                            <input type="text" name="answer_{{ question_index }}" class="form-input" placeholder="Your answer...">
+                        {% elif question.type == 'essay' %}
+                            <textarea name="answer_{{ question_index }}" class="form-input" placeholder="Write your essay here..."></textarea>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="navigation-buttons">
+                <button type="button" class="nav-button" id="prev-btn" style="visibility: hidden;">Previous</button>
+                <button type="button" class="nav-button" id="next-btn">Next</button>
+                <button type="submit" class="nav-button submit-btn" id="submit-btn" style="display: none;">Submit Quiz</button>
+            </div>
+        </form>
+    </div>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const questions = document.querySelectorAll('.question');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const progressText = document.getElementById('quiz-progress');
+    const totalQuestions = questions.length;
+    let currentQuestionIndex = 0;
+
+    function showQuestion(index) {
+        questions.forEach((q, i) => {
+            q.classList.toggle('active', i === index);
+        });
+        progressText.textContent = `Question ${index + 1} of ${totalQuestions}`;
+        prevBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
+        nextBtn.style.display = index === totalQuestions - 1 ? 'none' : 'block';
+        submitBtn.style.display = index === totalQuestions - 1 ? 'block' : 'none';
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < totalQuestions - 1) {
+            currentQuestionIndex++;
+            showQuestion(currentQuestionIndex);
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            showQuestion(currentQuestionIndex);
+        }
+    });
+
+    showQuestion(0);
+
+    // Timer logic
+    const timeLimit = {{ time_limit or 0 }};
+    if (timeLimit > 0) {
+        let timeLeft = timeLimit * 60;
+        const timerTextEl = document.getElementById('timer-text');
+        const timerFgEl = document.getElementById('timer-fg');
+        const circumference = 2 * Math.PI * 36;
+        timerFgEl.style.strokeDasharray = circumference;
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerTextEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            const offset = circumference - (timeLeft / (timeLimit * 60)) * circumference;
+            timerFgEl.style.strokeDashoffset = offset;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                document.getElementById('quiz-form').submit();
+            }
+        }, 1000);
+    } else {
+        const timerWrapper = document.querySelector('.timer-wrapper');
+        if (timerWrapper) {
+            timerWrapper.style.display = 'none';
+        }
+    }
+});
+</script>
+{% endblock %}

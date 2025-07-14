@@ -1,0 +1,893 @@
+{% extends 'base.html' %}
+
+{% block title %}Pricing - QuizCraft{% endblock %}
+
+{% block styles %}
+<style>
+:root {
+    --primaryp: #6a0dad;
+    --primaryp-light: #8b4fcb;
+    --secondaryp: #2196f3;
+    --secondaryp-light: #64b5f6;
+    --accentp: #9c27b0;
+    --dark: #1a1a2e;
+    --light: #f8f9ff;
+    --success: #4caf50;
+    --danger: #f44336;
+    --gray: #6c757d;
+    --light-gray: #e9ecef;
+    --transition: all 0.3s ease;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    --radius: 16px;
+    --card-bg: #2c2c2c;
+}
+
+body {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    background-attachment: fixed;
+}
+
+section {
+    padding: 80px 0;
+}
+
+.pricing-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 120px 0 80px;
+    background: linear-gradient(135deg, var(--primaryp), var(--secondaryp));
+    color: white;
+    text-align: center;
+}
+
+.pricing-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 20%);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-content h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.hero-content p {
+    font-size: 1.25rem;
+    margin-bottom: 2.5rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.toggle-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 30px 0;
+    gap: 15px;
+}
+
+.toggle-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #d1d1d1;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #3c3c3c;
+    transition: var(--transition);
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: var(--transition);
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background: linear-gradient(135deg, var(--primaryp), var(--secondaryp));
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.discount-badge {
+    background: linear-gradient(135deg, #ffcc00, #ff9900);
+    color: #1a1a2e;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-left: 10px;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.pricing-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+    border: 1px solid rgba(106, 13, 173, 0.3);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    z-index: 1;
+}
+
+.pricing-card.popular {
+    transform: scale(1.05);
+    border: 2px solid var(--accentp);
+    z-index: 2;
+}
+
+.pricing-card.popular::before {
+    content: 'MOST POPULAR';
+    position: absolute;
+    top: 15px;
+    right: -35px;
+    background: var(--accentp);
+    color: white;
+    padding: 5px 35px;
+    transform: rotate(45deg);
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 3;
+}
+
+.pricing-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.plan-name {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.plan-description {
+    color: #d1d1d1;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+.plan-price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    background: linear-gradient(to right, #9c27b0, #2196F3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.plan-period {
+    color: #d1d1d1;
+    font-size: 1rem;
+}
+
+.plan-features {
+    list-style: none;
+    margin-bottom: 30px;
+    text-align: left;
+    flex-grow: 1;
+}
+
+.plan-features li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+}
+
+.plan-features li:last-child {
+    border-bottom: none;
+}
+
+.plan-features li i {
+    margin-right: 10px;
+    color: var(--accentp);
+    min-width: 20px;
+}
+
+.plan-button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--primaryp), var(--secondaryp));
+    color: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 4;
+    pointer-events: auto;
+}
+
+.plan-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
+}
+
+.popular .plan-button {
+    background: white;
+    color: var(--primaryp);
+}
+
+.comparison-section {
+    background: rgba(44, 44, 44, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin: 60px 0;
+}
+
+.section-heading {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section-heading h2 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    position: relative;
+    display: inline-block;
+    background: linear-gradient(to right, #9c27b0, #2196F3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.section-heading p {
+    font-size: 1.2rem;
+    color: #d1d1d1;
+    max-width: 600px;
+    margin: 20px auto 0;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: var(--radius);
+}
+
+.comparison-table th, 
+.comparison-table td {
+    padding: 15px 20px;
+    text-align: left;
+}
+
+.comparison-table thead th {
+    background: linear-gradient(135deg, var(--primaryp), var(--secondaryp));
+    color: white;
+    font-weight: 600;
+    text-align: center;
+}
+
+.comparison-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.comparison-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.comparison-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.comparison-table .feature-name {
+    font-weight: 600;
+    color: #fff;
+}
+
+.comparison-table .feature-value {
+    text-align: center;
+}
+
+.comparison-table .feature-value i {
+    font-size: 1.2rem;
+}
+
+.fa-check {
+    color: var(--success);
+}
+
+.fa-times {
+    color: var(--danger);
+}
+
+.faq-section {
+    background: rgba(44, 44, 44, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius);
+    padding: 60px 40px;
+    margin: 60px 0;
+}
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid rgba(106, 13, 173, 0.3);
+}
+
+.faq-question {
+    padding: 20px;
+    background: rgba(106, 13, 173, 0.1);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-answer {
+    padding: 0 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.faq-item.active .faq-answer {
+    padding: 20px;
+    max-height: 500px;
+}
+
+.trust-badges {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin: 40px 0;
+}
+
+.trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 20px;
+    border-radius: 50px;
+}
+
+.trust-badge i {
+    font-size: 1.5rem;
+    color: var(--accentp);
+}
+
+.trust-badge span {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    overflow: auto;
+}
+
+.modal-content {
+    position: relative;
+    margin: 5% auto;
+    padding: 2rem;
+    background-color: var(--card-bg);
+    color: #e0e0e0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #e0e0e0;
+}
+
+#purchase-form div {
+    margin-bottom: 1.5rem;
+}
+
+#purchase-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+#purchase-form input,
+#purchase-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background-color: #3c3c3c;
+    color: #e0e0e0;
+}
+
+#purchase-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+#purchase-form button {
+    background: linear-gradient(135deg, var(--primaryp), var(--secondaryp));
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1.1rem;
+}
+
+#purchase-form button:hover {
+    background: linear-gradient(135deg, var(--primaryp-light), var(--secondaryp-light));
+}
+
+@media (max-width: 992px) {
+    .hero-content h1 { font-size: 2.8rem; }
+    .section-heading h2 { font-size: 2.2rem; }
+    .pricing-card.popular { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+    section { padding: 60px 0; }
+    .hero-content h1 { font-size: 2.3rem; }
+    .hero-content p { font-size: 1.1rem; }
+    .section-heading h2 { font-size: 2rem; }
+    .section-heading p { font-size: 1.1rem; }
+    .comparison-table { display: block; overflow-x: auto; }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 { font-size: 2rem; }
+    .section-heading h2 { font-size: 1.8rem; }
+    .plan-price { font-size: 2rem; }
+    .trust-badges { flex-direction: column; align-items: center; }
+}
+
+@media (max-width: 350px) {
+    .hero-content h1 { font-size: 1.7rem; }
+    .plan-button { padding: 12px; font-size: 1rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<main style="padding-top: 6rem; padding-bottom: 3rem;">
+    <section class="pricing-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Simple, Transparent Pricing</h1>
+                <p>Choose the perfect plan for your needs. All plans include our powerful AI quiz generation engine.</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="plan-name">Free</h3>
+                        <p class="plan-description">Perfect for getting started</p>
+                        <div class="plan-price">$0</div>
+                        <div class="plan-period">Forever</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> 5 quizzes per month</li>
+                        <li><i class="fas fa-check"></i> Multiple-choice & True/False</li>
+                        <li><i class="fas fa-check"></i> Basic results page</li>
+                        <li><i class="fas fa-check"></i> 1 user</li>
+                        <li><i class="fas fa-times"></i> No analytics</li>
+                        <li><i class="fas fa-times"></i> No priority support</li>
+                    </ul>
+                    <a href="{{ url_for('quiz_management.generate_quiz') }}" class="plan-button" style="pointer-events: auto; z-index: 4;">Start for Free</a>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="plan-name">Pro</h3>
+                        <p class="plan-description">For individual educators</p>
+                        <div class="plan-price monthly">$14.99</div>
+                        <div class="plan-price annual" style="display: none;">$11.99</div>
+                        <div class="plan-period monthly">per month</div>
+                        <div class="plan-period annual" style="display: none;">per month, billed annually</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> 50 quizzes per month</li>
+                        <li><i class="fas fa-check"></i> All question types</li>
+                        <li><i class="fas fa-check"></i> Basic analytics</li>
+                        <li><i class="fas fa-check"></i> Email support</li>
+                        <li><i class="fas fa-check"></i> Export to PDF</li>
+                        <li><i class="fas fa-times"></i> No team collaboration</li>
+                    </ul>
+                    <button class="plan-button buy-now" data-plan="Pro">Choose Pro</button>
+                </div>
+                <div class="pricing-card popular">
+                    <div class="pricing-header">
+                        <h3 class="plan-name">Premium</h3>
+                        <p class="plan-description">Best for teams & schools</p>
+                        <div class="plan-price monthly">$24.99</div>
+                        <div class="plan-price annual" style="display: none;">$19.99</div>
+                        <div class="plan-period monthly">per month</div>
+                        <div class="plan-period annual" style="display: none;">per month, billed annually</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> 50 static + 20 dynamic quizzes</li>
+                        <li><i class="fas fa-check"></i> All question types</li>
+                        <li><i class="fas fa-check"></i> Advanced analytics</li>
+                        <li><i class="fas fa-check"></i> Team collaboration</li>
+                        <li><i class="fas fa-check"></i> Custom branding</li>
+                        <li><i class="fas fa-check"></i> Priority support</li>
+                    </ul>
+                    <button class="plan-button buy-now" data-plan="Premium">Choose Premium</button>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3 class="plan-name">Enterprise</h3>
+                        <p class="plan-description">For large organizations</p>
+                        <div class="plan-price">Custom</div>
+                        <div class="plan-period">Tailored solution</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Flexible number of quizzes</li>
+                        <li><i class="fas fa-check"></i> All question types</li>
+                        <li><i class="fas fa-check"></i> Advanced analytics</li>
+                        <li><i class="fas fa-check"></i> Team collaboration</li>
+                        <li><i class="fas fa-check"></i> Custom branding</li>
+                        <li><i class="fas fa-check"></i> 24/7 priority support</li>
+                    </ul>
+                    <button class="plan-button contact-sales" data-plan="Enterprise">Contact Sales</button>
+                </div>
+            </div>
+            <div class="trust-badges">
+                <div class="trust-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Secure Payment</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-lock"></i>
+                    <span>SSL Encryption</span>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>No Money Back</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="comparison-section">
+        <div class="container">
+            <div class="section-heading">
+                <h2>Detailed Feature Comparison</h2>
+                <p>See how our plans stack up against each other</p>
+            </div>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Free</th>
+                        <th>Pro</th>
+                        <th>Premium</th>
+                        <th>Enterprise</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="feature-name">Quizzes per Month</td>
+                        <td class="feature-value">5 S</td>
+                        <td class="feature-value">50 S</td>
+                        <td class="feature-value">50 S + 20 D</td>
+                        <td class="feature-value">Flexible</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Question Types</td>
+                        <td class="feature-value">2</td>
+                        <td class="feature-value">All</td>
+                        <td class="feature-value">All</td>
+                        <td class="feature-value">All</td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Analytics Dashboard</td>
+                        <td class="feature-value"><i class="fas fa-times"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Team Collaboration</td>
+                        <td class="feature-value"><i class="fas fa-times"></i></td>
+                        <td class="feature-value"><i class="fas fa-times"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Custom Branding</td>
+                        <td class="feature-value"><i class="fas fa-times"></i></td>
+                        <td class="feature-value"><i class="fas fa-times"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                    </tr>
+                    <tr>
+                        <td class="feature-name">Priority Support</td>
+                        <td class="feature-value"><i class="fas fa-times"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                        <td class="feature-value"><i class="fas fa-check"></i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="faq-section">
+        <div class="container">
+            <div class="section-heading">
+                <h2>Frequently Asked Questions</h2>
+                <p>Find answers to common questions about QuizCraft</p>
+            </div>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What payment methods do you accept? 
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        We accept all major credit cards including Visa, MasterCard, American Express, and Discover. We also support payments via PayPal.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Can I change plans later? 
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Absolutely! You can upgrade, downgrade, or cancel your plan at any time. Changes take effect immediately and we'll prorate any differences.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Is there a free trial? 
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes! Our Premium plan comes with a 14-day free trial. No credit card required. You can explore all features before committing.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Do you offer educational discounts? 
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Yes, we offer special pricing for educational institutions. Contact our sales team with your institution details to learn more.
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How secure is my data? 
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        Security is our top priority. All data is encrypted in transit and at rest. We undergo regular security audits and comply with industry standards.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="section-heading">
+                <h2>Ready to Transform Your Assessments?</h2>
+                <p>Join thousands of educators creating better quizzes in less time</p>
+                <a href="{{ url_for('auth.register') }}" class="plan-button" style="display: inline-block; width: auto; padding: 15px 40px; margin-top: 30px; pointer-events: auto; z-index: 4;">
+                    Start Your Free Trial Today
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div id="purchase-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">×</span>
+            <h2>Purchase Request for <span id="plan-name"></span></h2>
+            <form id="purchase-form" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="plan" id="plan-input">
+                <div>
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div>
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                <div>
+                    <label for="address">Address</label>
+                    <input type="text" id="address" name="address" required>
+                </div>
+                <div>
+                    <label for="message">Message (Optional)</label>
+                    <textarea id="message" name="message"></textarea>
+                </div>
+                <div>
+                    <input type="checkbox" id="agree" name="agree" required>
+                    <label for="agree">I agree to receive an email with payment details within 24 hours.</label>
+                </div>
+                <button type="submit" class="button">Submit Request</button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const annualToggle = document.getElementById('annual-toggle');
+    const monthlyPrices = document.querySelectorAll('.plan-price.monthly');
+    const annualPrices = document.querySelectorAll('.plan-price.annual');
+    const monthlyPeriods = document.querySelectorAll('.plan-period.monthly');
+    const annualPeriods = document.querySelectorAll('.plan-period.annual');
+
+    if (annualToggle) {
+        annualToggle.addEventListener('change', function() {
+            if (this.checked) {
+                monthlyPrices.forEach(price => price.style.display = 'none');
+                annualPrices.forEach(price => price.style.display = 'block');
+                monthlyPeriods.forEach(period => period.style.display = 'none');
+                annualPeriods.forEach(period => period.style.display = 'block');
+            } else {
+                monthlyPrices.forEach(price => price.style.display = 'block');
+                annualPrices.forEach(price => price.style.display = 'none');
+                monthlyPeriods.forEach(period => period.style.display = 'block');
+                annualPeriods.forEach(period => period.style.display = 'none');
+            }
+        });
+    }
+
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question');
+        question.addEventListener('click', () => {
+            faqItems.forEach(otherItem => {
+                if (otherItem !== item) {
+                    otherItem.classList.remove('active');
+                }
+            });
+            item.classList.toggle('active');
+        });
+    });
+
+    const modal = document.getElementById('purchase-modal');
+    const closeBtn = modal.querySelector('.close');
+    const planNameSpan = document.getElementById('plan-name');
+    const form = document.getElementById('purchase-form');
+    const planInput = document.getElementById('plan-input');
+
+    document.querySelectorAll('.buy-now, .contact-sales').forEach(btn => {
+        btn.addEventListener('click', () => {
+            console.log('Button clicked:', btn.getAttribute('data-plan'));
+            const plan = btn.getAttribute('data-plan');
+            planNameSpan.textContent = plan;
+            planInput.value = plan;
+            modal.style.display = 'block';
+            console.log('Modal should be visible now');
+            {% if current_user.is_authenticated %}
+                document.getElementById('name').value = '{{ current_user.username }}';
+                document.getElementById('email').value = '{{ current_user.email }}';
+            {% endif %}
+        });
+    });
+
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        fetch('/submit_purchase', {
+            method: 'POST',
+            body: formData
+        }).then(response => {
+            if (response.ok) {
+                alert('Your request has been submitted.');
+                modal.style.display = 'none';
+                form.reset();
+            } else {
+                alert('Error submitting your request.');
+            }
+        }).catch(error => {
+            alert('Network error: ' + error.message);
+        });
+    });
+});
+</script>
+{% endblock %}

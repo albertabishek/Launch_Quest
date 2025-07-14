@@ -1,0 +1,539 @@
+{% extends "base.html" %}
+
+{% block title %}QuizCraft - AI-Powered Interactive Events{% endblock %}
+
+{% block styles %}
+<style>
+    :root {
+        --primaryh: #6a0dad;
+        --primaryh-light: #8b4fcb;
+        --secondaryh: #2196f3;
+        --secondaryh-light: #64b5f6;
+        --accenth: #9c27b0;
+        --dark: #1a1a2e;
+        --light: #f8f9ff;
+        --success: #4caf50;
+        --danger: #f44336;
+        --gray: #6c757d;
+        --light-gray: #e9ecef;
+        --transition: all 0.3s ease;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --radius: 16px;
+        --card-bg: #2c2c2c;
+    }
+
+    body {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        background-attachment: fixed;
+    }
+
+    /* General Section Styling */
+    section {
+        padding: 5rem 0;
+    }
+
+    /* Hero Section */
+    .hero {
+        position: relative;
+        padding: 8rem 0 5rem;
+        text-align: center;
+        overflow: hidden;
+    }
+    .hero-bg-left {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(106, 13, 173, 0.1) 0%, transparent 70%);
+        filter: blur(96px);
+        transform: translate(-33%, -33%);
+        z-index: -1;
+    }
+    .hero-bg-right {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
+        filter: blur(96px);
+        transform: translate(33%, 33%);
+        z-index: -1;
+    }
+    .hero-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    .hero-content {
+        max-width: 896px;
+        margin: 0 auto;
+    }
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #FFFFFF;
+        background: linear-gradient(90deg, #FFFFFF 10%, #B0B0D0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-family: 'Manrope', sans-serif;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+    }
+    @media (min-width: 640px) {
+        .hero-title {
+            font-size: 3.5rem;
+        }
+    }
+    @media (min-width: 768px) {
+        .hero-title {
+            font-size: 4.5rem;
+        }
+    }
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: var(--light-text);
+        max-width: 640px;
+        margin: 0 auto 2.5rem;
+    }
+    .hero-buttons {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    .btn {
+        padding: 1rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-primary {
+        background: var(--primaryh);
+        color: var(--white);
+        box-shadow: 0 4px 20px rgba(106, 13, 173, 0.8);
+    }
+    .btn-primary:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(106, 13, 173, 1);
+    }
+    .hero-note {
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+        color: var(--gray-text);
+    }
+    .hero-visual {
+        margin-top: 5rem;
+        height: 300px;
+        width: 100%;
+        background: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }.hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0; /* Start hidden for animation */
+    animation: fadeIn 1s ease-in forwards; /* Fade in over 1 second */
+}
+
+/* Define the fade-in animation */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+    @media (min-width: 768px) {
+        .hero-visual {
+            height: 400px;
+        }
+    }
+    @media (min-width: 1024px) {
+        .hero-visual {
+            height: 500px;
+        }
+    }
+    .hero-visual div {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+    .trusted-section {
+        margin-top: 6rem;
+    }
+    .trusted-label {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--gray-text);
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .trusted-logos {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+    }
+    .logo-scroll {
+        display: flex;
+        animation: scroll 30s linear infinite;
+    }
+    .logo-scroll div {
+        display: flex;
+        align-items: center;
+        gap: 3rem;
+        padding: 0 1.5rem;
+    }
+    .logo-scroll span {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-text);
+        opacity: 0.6;
+    }
+    @keyframes scroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    /* Steps Section */
+    .steps {
+        padding: 5rem 0;
+    }
+    .steps-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    .steps-title {
+        font-size: 2.25rem;
+        font-weight: bold;
+        color: var(--white);
+        font-family: 'Manrope', sans-serif;
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+    }
+    @media (max-width: 768px) {
+        .steps-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .step-card {
+        text-align: center;
+        padding: 2rem;
+        background: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+    }
+    .step-icon {
+        width: 64px;
+        height: 64px;
+        background: rgba(106, 13, 173, 0.1);
+        color: var(--primaryh);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 1.5rem;
+    }
+    .step-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: var(--white);
+        margin-bottom: 0.5rem;
+    }
+    .step-desc {
+        color: var(--gray-text);
+    }
+
+    /* Features Section */
+    .features {
+        padding: 5rem 0;
+    }
+    .features-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+    .features-title {
+        font-size: 2.25rem;
+        font-weight: bold;
+        color: var(--white);
+        font-family: 'Manrope', sans-serif;
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
+    @media (max-width: 768px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .feature-card {
+        padding: 2rem;
+        border-radius: 16px;
+        background: radial-gradient(circle at 50% 0%, rgba(106, 13, 173, 0.15) 0%, transparent 40%);
+    }
+    .feature-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+    .feature-icon {
+        font-size: 1.5rem;
+        color: var(--primaryh);
+    }
+    .feature-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: var(--white);
+    }
+    .feature-desc {
+        margin-top: 0.5rem;
+        color: var(--gray-text);
+    }
+
+    /* CTA Section */
+    .cta {
+        padding: 5rem 0;
+    }
+    .cta-container {
+        max-width: 896px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .cta-box {
+        background: linear-gradient(135deg, var(--primaryh), var(--secondaryh));
+        padding: 3rem;
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    .cta-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.2);
+    }
+    .cta-content {
+        position: relative;
+        z-index: 1;
+    }
+    .cta-title {
+        font-size: 2.25rem;
+        font-weight: bold;
+        color: var(--white);
+        font-family: 'Manrope', sans-serif;
+        margin-bottom: 1rem;
+    }
+    .cta-subtitle {
+        font-size: 1.25rem;
+        color: rgba(255, 255, 255, 0.8);
+        max-width: 640px;
+        margin: 0 auto 2rem;
+    }
+    .cta-btn {
+        display: inline-block;
+        padding: 1rem 2rem;
+        background: var(--white);
+        color: var(--primaryh);
+        font-weight: 600;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: transform 0.3s ease;
+    }
+    .cta-btn:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main style="padding-top: 80px;">
+    <section class="hero">
+        <div class="hero-bg-left"></div>
+        <div class="hero-bg-right"></div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title" id="hero-headline"></h1>
+                <p class="hero-subtitle">From instant question generation to live community chat, QuizCraft is the all-in-one platform to create unforgettable interactive experiences that captivate and engage.</p>
+                <div class="hero-buttons">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('events.events') }}" class="btn btn-primary">Join The Events — And Win Prizes</a>
+                    {% else %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Create Your First Event — It's Free</a>
+                    {% endif %}
+                </div>
+                <p class="hero-note">No credit card required.</p>
+                <div class="hero-visual">
+    <img src="static/images/launchquest/herosection.webp" alt="LaunchQuest Hero Image" class="hero-image">
+</div>
+                <div class="trusted-section">
+                    <p class="trusted-label">TRUSTED BY 10,000+ CREATORS & EDUCATORS WORLDWIDE</p>
+                    <div class="trusted-logos">
+                        <div class="logo-scroll">
+                            <div>
+                                <span>EventCorp</span>
+                                <span>Learnify</span>
+                                <span>CommunityHub</span>
+                                <span>InnovateX</span>
+                                <span>EduVerse</span>
+                            </div>
+                            <div>
+                                <span>EventCorp</span>
+                                <span>Learnify</span>
+                                <span>CommunityHub</span>
+                                <span>InnovateX</span>
+                                <span>EduVerse</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="steps">
+        <div class="steps-container">
+            <h2 class="steps-title gsap-reveal">Go From Idea to Live Event in 3 Simple Steps</h2>
+            <div class="steps-grid">
+                <div class="step-card gsap-reveal">
+                    <div class="step-icon"><i class="fas fa-wand-magic-sparkles"></i></div>
+                    <h3 class="step-title">1. Describe Your Vision</h3>
+                    <p class="step-desc">Simply provide any topic. Our AI instantly generates a full quiz with diverse question types in seconds.</p>
+                </div>
+                <div class="step-card gsap-reveal">
+                    <div class="step-icon"><i class="fas fa-sliders-h"></i></div>
+                    <h3 class="step-title">2. Customize Your Event</h3>
+                    <p class="step-desc">Set time limits, manage registrations, define prizes, and brand your event with custom logos and colors.</p>
+                </div>
+                <div class="step-card gsap-reveal">
+                    <div class="step-icon"><i class="fas fa-rocket"></i></div>
+                    <h3 class="step-title">3. Launch & Engage</h3>
+                    <p class="step-desc">Go live and watch your community come alive with our built-in chat, live polls, and real-time leaderboards.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="features-container">
+            <h2 class="features-title gsap-reveal">The Ultimate Toolkit for Interactive Events</h2>
+            <div class="features-grid">
+                <div class="feature-card gsap-reveal">
+                    <div class="feature-content">
+                        <i class="fas fa-brain feature-icon"></i>
+                        <div>
+                            <h3 class="feature-title">Instant AI Quiz Generation</h3>
+                            <p class="feature-desc">Save hours of work. Our AI creates accurate, relevant quizzes in 50+ languages, tailored to your specified difficulty.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="feature-card gsap-reveal">
+                    <div class="feature-content">
+                        <i class="fas fa-calendar-alt feature-icon"></i>
+                        <div>
+                            <h3 class="feature-title">Complete Event Management</h3>
+                            <p class="feature-desc">From paid registrations to participant dashboards, you have full, granular control over your event.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="feature-card gsap-reveal">
+                    <div class="feature-content">
+                        <i class="fas fa-comments feature-icon"></i>
+                        <div>
+                            <h3 class="feature-title">Live Community Chat</h3>
+                            <p class="feature-desc">Foster community with real-time chat, emoji reactions, live polls, file sharing, and pinned messages.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="feature-card gsap-reveal">
+                    <div class="feature-content">
+                        <i class="fas fa-trophy feature-icon"></i>
+                        <div>
+                            <h3 class="feature-title">Real-Time Leaderboards</h3>
+                            <p class="feature-desc">Drive engagement with live leaderboards. Define winners and automatically display prize distributions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="cta-container">
+            <div class="cta-box">
+                <div class="cta-overlay"></div>
+                <div class="cta-content">
+                    <h2 class="cta-title gsap-reveal">Ready to Create Events That Captivate?</h2>
+                    <p class="cta-subtitle gsap-reveal">Join over 10,000 creators and start building your first interactive quiz event in seconds.</p>
+                    <a href="{{ url_for('auth.register') }}" class="cta-btn gsap-reveal">Start for Free Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Typing animation for Hero Headline
+        const heroHeadline = document.getElementById('hero-headline');
+        const text = "Launch AI-Powered Quiz Events in Minutes";
+        heroHeadline.textContent = "";
+        let i = 0;
+        function typeWriter() {
+            if (i < text.length) {
+                heroHeadline.textContent += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 70);
+            }
+        }
+        setTimeout(typeWriter, 500);
+
+        // Scroll-triggered animations
+        const revealElements = document.querySelectorAll('.gsap-reveal');
+        revealElements.forEach(elem => {
+            gsap.fromTo(elem, 
+                { y: 50, opacity: 0 }, 
+                {
+                    duration: 1.2,
+                    y: 0,
+                    opacity: 1,
+                    ease: 'expo.out',
+                    scrollTrigger: {
+                        trigger: elem,
+                        start: 'top 85%',
+                        toggleActions: 'play none none none'
+                    }
+                }
+            );
+        });
+    });
+</script>
+{% endblock %}

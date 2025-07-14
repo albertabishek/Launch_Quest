@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Quiz Results - {{ quiz.title }}</title>
+    <style>
+        /* Using a common, professional, and PDF-safe font stack */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', 'Helvetica', 'Arial', sans-serif;
+            font-size: 11px;
+            line-height: 1.6;
+            background-color: #ffffff;
+            color: #333333;
+        }
+
+        .report-container { width: 100%; margin: 0 auto; }
+
+        .header {
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #8A2BE2; /* Hardcoded primary color */
+        }
+        
+        .header-table { width: 100%; border-collapse: collapse; }
+        .header-table td { vertical-align: middle; }
+        .header-logo { width: 150px; }
+        .header-logo img { max-width: 140px; max-height: 60px; }
+        .header-text { text-align: right; }
+        
+        .report-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin: 0;
+        }
+        .quiz-title {
+            font-size: 16px;
+            color: #555555;
+            margin: 5px 0 0 0;
+            font-weight: 500;
+        }
+
+        .summary-grid {
+            margin-bottom: 25px;
+            background-color: #f9f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #eeeeee;
+        }
+
+        .summary-table { width: 100%; border-collapse: collapse; }
+        .summary-table td { width: 25%; padding: 5px; vertical-align: top; }
+        .summary-table .label { font-size: 12px; color: #666; margin-bottom: 4px; }
+        .summary-table .value { font-size: 18px; font-weight: 600; color: #1a1a2e; }
+        .summary-table .value.score { color: #8A2BE2; }
+
+        .results-heading {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+            border-bottom: 1px solid #dddddd;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+        }
+
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table th, .results-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eeeeee;
+        }
+        .results-table th { font-size: 12px; color: #666; }
+        .results-table .col-status { width: 60px; text-align: center; }
+        .results-table .col-question { width: 40%; }
+        
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .answer-block { margin-top: 4px; font-size: 11px; }
+        .answer-label { font-weight: 500; color: #555; }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #eeeeee;
+            font-size: 10px;
+            color: #aaaaaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <div class="header">
+            <table class="header-table">
+                <tr>
+                    <td class="header-logo">
+                        {% if logo_data %}
+                            <img src="data:{{ mime_type }};base64,{{ logo_data }}" alt="Quiz Logo">
+                        {% else %}
+                            <img src="https://i.ibb.co/Vt4wcrP/logo-placeholder.png" alt="QuizCraft">
+                        {% endif %}
+                    </td>
+                    <td class="header-text">
+                        <h1 class="report-title">Performance Report</h1>
+                        <p class="quiz-title">{{ quiz.title }}</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="summary-grid">
+            <table class="summary-table">
+                <tr>
+                    <td>
+                        <div class="label">Participant</div>
+                        <div class="value">{{ current_user.username }}</div>
+                    </td>
+                    <td>
+                        <div class="label">Date Completed</div>
+                        <div class="value">{{ current_time | localtime(current_user.timezone) | formatdatetime('%B %d, %Y') }}</div>
+                    </td>
+                    <td>
+                        <div class="label">Final Score</div>
+                        <div class="value score">{{ score|int }} / {{ total }}</div>
+                    </td>
+                    <td>
+                        <div class="label">Percentage</div>
+                        <div class="value">{{ (score/total*100)|round|int }}%</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <h2 class="results-heading">Detailed Breakdown</h2>
+
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">#</th>
+                    <th class="col-question">Question</th>
+                    <th>Your Answer</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ result.question }}</td>
+                    <td>
+                        {% if result.user_answer %}
+                            {{ result.user_answer | join(', ') if result.is_multiple_answer else result.user_answer }}
+                        {% else %}
+                            <em>Not Answered</em>
+                        {% endif %}
+                        {% if not result.is_correct %}
+                            <div class="answer-block">
+                                <span class="answer-label">Correct:</span> 
+                                {{ result.correct_answer | join(', ') if result.is_multiple_answer else result.correct_answer }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td class="col-status">
+                        {% if result.is_correct %}
+                            <span class="status-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#28a745"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                            </span>
+                        {% else %}
+                            <span class="status-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#dc3545"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="footer">
+            Generated by QuizCraft | A modern way to create and share quizzes.
+        </div>
+    </div>
+</body>
+</html>

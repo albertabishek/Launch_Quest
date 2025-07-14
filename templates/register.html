@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - RallyMind{% endblock %}
+
+{% block styles %}
+<style>
+    /* All styles are inherited from login.html for consistency */
+    .form-wrapper { min-height: calc(100vh - 80px); display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; background: linear-gradient(135deg, #0f0f2a 0%, #140C1F 100%); margin-top: 5rem; }
+    .form-container { width: 100%; max-width: 420px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(138, 43, 226, 0.3); border-radius: 1.5rem; backdrop-filter: blur(12px); padding: 2.5rem; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); }
+    .form-header h2 { font-family: 'Manrope', sans-serif; font-size: 2rem; font-weight: 800; background: linear-gradient(90deg, #8A2BE2 0%, #E6007A 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; text-align:center; }
+    .google-btn { display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 0.75rem; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 0.5rem; color: #E0E7FF; font-weight: 500; text-decoration: none; }
+    .google-btn:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(138, 43, 226, 0.4); }
+    .google-btn svg { width: 1.25rem; height: 1.25rem; }
+    .divider { display: flex; align-items: center; margin: 1.5rem 0; color: #64748B; font-size: 0.75rem; text-transform: uppercase; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1); }
+    .divider span { padding: 0 1rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; color: #E0E7FF; font-size: 0.875rem; font-weight: 500; }
+    .form-input { width: 100%; padding: 0.875rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; color: #FFFFFF; }
+    .form-input:focus { outline: none; border-color: #8A2BE2; box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.3); }
+    .password-container { position: relative; }
+    .toggle-password { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94A3B8; cursor: pointer; }
+    .submit-btn { width: 100%; padding: 0.875rem; background: linear-gradient(90deg, #8A2BE2 0%, #E6007A 100%); border-radius: 0.5rem; color: white; font-weight: 600; border: none; cursor: pointer; }
+    .form-footer a { color: #8A2BE2; text-decoration: none; font-weight: 600; }
+    select.form-input { appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394A3B8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 0.65em auto; padding-right: 2.5rem; }
+    select.form-input option { background: #0F0F2A; color: #E0E7FF; }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="form-wrapper">
+    <div class="form-container">
+        <div class="form-header">
+            <h2>Create Your Account</h2>
+            <p>Join thousands of creators today.</p>
+        </div>
+
+        <a href="{{ url_for('oauth.login_google') }}" class="google-btn">
+            <svg viewBox="0 0 48 48"><g><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v8.51h12.8c-.57 3.02-2.31 5.45-4.72 7.18l7.27 5.62C42.96 37.26 46.98 31.45 46.98 24.55z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.82l-7.27-5.62c-2.11 1.45-4.82 2.3-7.62 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></g></svg>
+            <span>Sign up with Google</span>
+        </a>
+
+        <div class="divider"><span>OR</span></div>
+
+        <form method="POST" action="{{ url_for('auth.register') }}" x-data="{ passwordVisible: false, confirmVisible: false }">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                <label class="form-label">{{ form.username.label }}</label>
+                {{ form.username(class="form-input", placeholder="Choose a username") }}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">{{ form.email.label }}</label>
+                {{ form.email(class="form-input", placeholder="you@example.com") }}
+            </div>
+             
+            <div class="form-group">
+                <label class="form-label">{{ form.timezone.label }}</label>
+                {{ form.timezone(class="form-input") }}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">{{ form.password.label }}</label>
+                <div class="password-container">
+                    <input id="password" name="password" required class="form-input" placeholder="••••••••" autocomplete="new-password" :type="passwordVisible ? 'text' : 'password'">
+                    <button type="button" class="toggle-password" @click="passwordVisible = !passwordVisible">
+                        <i class="fas" :class="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-text mt-2">At least 8 characters with letters, numbers & symbols.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <div class="password-container">
+                    <input type="password" name="confirm_password" class="form-input" placeholder="••••••••" required autocomplete="new-password" :type="confirmVisible ? 'text' : 'password'">
+                     <button type="button" class="toggle-password" @click="confirmVisible = !confirmVisible">
+                        <i class="fas" :class="confirmVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group mt-6">
+                <button type="submit" class="submit-btn">{{ form.submit.label }}</button>
+            </div>
+        </form>
+        
+        <div class="form-footer">
+            <p class="text-center text-sm text-gray-text">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a>.</p>
+        </div>
+    </div>
+</main>
+{% endblock %}

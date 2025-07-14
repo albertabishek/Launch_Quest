@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}LaunchQuest - AI-Powered Interactive Events{% endblock %}</title>
+
+    <meta name="description" content="Create and host AI-powered quiz events in minutes. Engage your community with live chat, real-time leaderboards, and interactive polls.">
+    <meta name="keywords" content="AI quiz generator, live events, interactive quizzes, community engagement, online events, quiz platform, LaunchQuest">
+    <meta name="author" content="LaunchQuest">
+    <link rel="canonical" href="{{ request.url }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:title" content="LaunchQuest - AI-Powered Interactive Events">
+    <meta property="og:description" content="Turn any topic into a live, interactive event with AI-powered quizzes, chat, and real-time leaderboards.">
+    <meta property="og:image" content="{{ url_for('static', filename='images/launchquest/herosection.webp') }}"> 
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.url }}">
+    <meta property="twitter:title" content="LaunchQuest - AI-Powered Interactive Events">
+    <meta property="twitter:description" content="Turn any topic into a live, interactive event with AI-powered quizzes, chat, and real-time leaderboards.">
+    <meta property="twitter:image" content="{{ url_for('static', filename='images/launchquest/herosection.webp') }}">
+
+    <link rel="icon" href="{{ url_for('static', filename='images/launchquest/LaunchQuest-social-preview.png') }}">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+    <style>
+        :root {
+            --primary: #8A2BE2;
+            --secondary: #E6007A;
+            --dark-bg: #0F0F2A;
+            --light-text: #E0E7FF;
+            --gray-text: #94A3B8;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--gray-text);
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            letter-spacing: 0.01em;
+            overflow-x: hidden;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            height: 80px;
+            background: transparent;
+            transition: background 0.3s ease;
+        }
+
+        header.glassmorphic {
+            background: rgba(15, 15, 42, 0.8);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+            padding: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--light-text);
+        }
+
+        .logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            background-color: var(--primary);
+            border-radius: 0.5rem;
+            color: var(--white);
+            font-weight: bold;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover .logo-icon {
+            transform: rotate(5deg);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .desktop-nav {
+            display: none;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--light-text);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem;
+            position: relative;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropbtn {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            font-weight: 500;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .dropbtn:hover {
+            color: var(--primary);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--dark-bg);
+            min-width: 140px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            right: 0;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .dropdown-content a {
+            color: var(--light-text);
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-content a:hover {
+            background-color: rgba(138, 43, 226, 0.2);
+        }
+
+        .menu-button {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            cursor: pointer;
+            padding: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .mobile-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: var(--dark-bg);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .mobile-menu-content {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .mobile-nav-link {
+            color: var(--light-text);
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .mobile-nav-link:hover {
+            background-color: rgba(138, 43, 226, 0.2);
+        }
+
+        .mobile-dropdown-toggle {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+
+        .mobile-dropdown-content {
+            padding-left: 2rem;
+        }
+
+        .mobile-dropdown-content a {
+            color: var(--light-text);
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s ease;
+        }
+
+        .mobile-dropdown-content a:hover {
+            background-color: rgba(138, 43, 226, 0.2);
+        }
+
+        .button {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .button:hover {
+            background: #7A1DD1;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(138, 43, 226, 0.4);
+        }
+
+        .plan-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+        }
+
+        .plan-badge.free { background-color: #28a745; color: var(--white); }
+        .plan-badge.pro { background-color: #2196F3; color: var(--white); }
+        .plan-badge.premium { background-color: #9c27b0; color: var(--white); }
+        .plan-badge.enterprise { background-color: #ffca28; color: #000000; }
+
+        .flash-messages {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .flash-message {
+            background-color: rgba(30, 41, 59, 0.9);
+            color: var(--light-text);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            pointer-events: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .flash-message.flash-danger {
+            background-color: rgba(248, 215, 218, 0.9);
+            color: #721c24;
+        }
+
+        .flash-message.flash-success {
+            background-color: rgba(212, 237, 218, 0.9);
+            color: #155724;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: inherit;
+        }
+
+        footer {
+            background-color: var(--dark-bg);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .footer-links ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links a {
+            color: var(--gray-text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .social-link {
+            color: var(--gray-text);
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        .social-link:hover {
+            color: var(--primary);
+            transform: scale(1.2);
+        }
+
+        .footer-bottom {
+            margin-top: 3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--gray-text);
+        }
+
+        @media (min-width: 768px) {
+            .desktop-nav {
+                display: flex;
+            }
+            .menu-button {
+                display: none;
+            }
+        }
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <header x-data="{ mobileMenuOpen: false, scrolled: false, accountOpen: false }" 
+            @scroll.window="scrolled = (window.pageYOffset > 10)" 
+            :class="{ 'glassmorphic': scrolled }">
+        <nav class="container">
+            <a href="{{ url_for('main.home') }}" class="logo">
+                <div class="logo-icon">L</div>
+                <span class="logo-text">LaunchQuest</span>
+            </a>
+            <div class="desktop-nav">
+                <a href="{{ url_for('main.home') }}" class="nav-link">Home</a>
+                <a href="{{ url_for('main.pricing') }}" class="nav-link">Pricing</a>
+                {% if current_user.is_authenticated %}
+                    <span class="plan-badge {{ current_user.effective_plan }}">{{ current_user.effective_plan.capitalize() }}
+                        {% if current_user.effective_plan == 'free' %}
+                            ({{ current_user.credits }} credits)
+                        {% elif current_user.effective_plan == 'pro' %}
+                            ({{ current_user.credits }} credits)
+                        {% elif current_user.effective_plan == 'premium' %}
+                            ({{ current_user.static_credits }} static, {{ current_user.dynamic_credits }} dynamic)
+                        {% elif current_user.effective_plan == 'enterprise' %}
+                            (Unlimited)
+                        {% endif %}
+                    </span>
+                    <a href="{{ url_for('quiz_management.generate_quiz') }}" class="nav-link">Generate Quiz</a>
+                    <a href="{{ url_for('quiz_management.my_quizzes') }}" class="nav-link">My Quizzes</a>
+                    <a href="{{ url_for('events.events') }}" class="nav-link">Events</a>
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin.admin_panel') }}" class="nav-link">Admin</a>
+                    {% endif %}
+                    <div class="dropdown">
+                        <button class="dropbtn">Account</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('auth.logout') }}">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="button">Login / Sign Up</a>
+                {% endif %}
+            </div>
+            <button class="menu-button" @click="mobileMenuOpen = !mobileMenuOpen" aria-label="Toggle menu">
+                <i x-show="!mobileMenuOpen" class="fas fa-bars"></i>
+                <i x-show="mobileMenuOpen" class="fas fa-times"></i>
+            </button>
+        </nav>
+        <div class="mobile-menu" x-show="mobileMenuOpen" 
+             @click.away="mobileMenuOpen = false"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-x-full"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-full">
+            <div class="mobile-menu-content">
+                <a href="{{ url_for('main.home') }}" class="mobile-nav-link" @click="mobileMenuOpen = false"><i class="fas fa-home"></i> Home</a>
+                <a href="{{ url_for('main.pricing') }}" class="mobile-nav-link" @click="mobileMenuOpen = false"><i class="fas fa-dollar-sign"></i> Pricing</a>
+                {% if current_user.is_authenticated %}
+                    <span class="plan-badge {{ current_user.effective_plan }}">{{ current_user.effective_plan.capitalize() }}
+                        {% if current_user.effective_plan == 'free' %}
+                            ({{ current_user.credits }} credits)
+                        {% elif current_user.effective_plan == 'pro' %}
+                            ({{ current_user.credits }} credits)
+                        {% elif current_user.effective_plan == 'premium' %}
+                            ({{ current_user.static_credits }} static, {{ current_user.dynamic_credits }} dynamic)
+                        {% elif current_user.effective_plan == 'enterprise' %}
+                            (Unlimited)
+                        {% endif %}
+                    </span>
+                    <a href="{{ url_for('quiz_management.generate_quiz') }}" class="mobile-nav-link" @click="mobileMenuOpen = false"><i class="fas fa-plus"></i> Generate Quiz</a>
+                    <a href="{{ url_for('quiz_management.my_quizzes') }}" class="mobile-nav-link" @click="mobileMenuOpen = false"><i class="fas fa-list"></i> My Quizzes</a>
+                    <a href="{{ url_for('events.events') }}" class="mobile-nav-link" @click="mobileMenuOpen = false"><i class="fas fa-calendar"></i> Events</a>
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin.admin_panel') }}" class="mobile-nav-link" @click="mobileMenuOpen = false"><i class="fas fa-user-shield"></i> Admin</a>
+                    {% endif %}
+                    <button class="mobile-dropdown-toggle" @click="accountOpen = !accountOpen"><span><i class="fas fa-user"></i> Account</span> <span>▾</span></button>
+                    <div class="mobile-dropdown-content" x-show="accountOpen">
+                        <a href="{{ url_for('auth.logout') }}" @click="mobileMenuOpen = false"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="mobile-nav-link button" @click="mobileMenuOpen = false"><i class="fas fa-sign-in-alt"></i> Login / Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        <span>{{ message }}</span>
+                        <button class="close-btn" onclick="this.parentElement.style.display='none';">×</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <div>
+                <a href="{{ url_for('main.home') }}" class="logo">
+                    <div class="logo-icon">L</div>
+                    <span class="logo-text">LaunchQuest</span>
+                </a>
+                <p style="margin-top: 1rem;">Create engaging quizzes with AI.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h3 style="font-weight: bold; color: var(--white); margin-bottom: 1rem;">Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('main.home') }}">Home</a></li>
+                    <li><a href="{{ url_for('main.pricing') }}">Pricing</a></li>
+                    <li><a href="{{ url_for('quiz_management.generate_quiz') }}">Generate Quiz</a></li>
+                    <li><a href="{{ url_for('quiz_management.my_quizzes') }}">My Quizzes</a></li>
+                    <li><a href="{{ url_for('events.events') }}">Events</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3 style="font-weight: bold; color: var(--white); margin-bottom: 1rem;">Legal</h3>
+                <ul>
+                    <li><a href="#">Terms</a></li>
+                    <li><a href="#">Privacy</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3 style="font-weight: bold; color: var(--white); margin-bottom: 1rem;">Contact</h3>
+                <ul>
+                    <li><a href="mailto:launchquest@gmail.com">LaunchQuest@gmail.com</a></li>
+                </ul>
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 LaunchQuest. All rights reserved.</p>
+            <button class="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });">Back to Top</button>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            positionClass: "toast-top-right",
+            preventDuplicates: true,
+            showDuration: "300",
+            hideDuration: "1000",
+            timeOut: "5000",
+            extendedTimeOut: "1000"
+        };
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'success' %}
+                        toastr.success('{{ message | safe }}');
+                    {% elif category == 'danger' %}
+                        toastr.error('{{ message | safe }}');
+                    {% else %}
+                        toastr.info('{{ message | safe }}');
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Take this exciting quiz created with QuizCraft! Test your knowledge and share with friends." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{ quiz.title }} - QuizCraft" />
+    <meta property="og:description" content="Take this exciting quiz on {{ quiz.topic }} and challenge your friends!" />
+    <meta property="og:image" content="{{ url_for('static', filename='images/rallymind-social-preview.png', _external=True) }}" />
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="{{ quiz.title }} - QuizCraft" />
+    <meta property="twitter:description" content="Take this exciting quiz on {{ quiz.topic }} and challenge your friends!" />
+    <meta property="twitter:image" content="{{ url_for('static', filename='images/rallymind-social-preview.png', _external=True) }}" />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico', _external=True) }}" />
+    <title>{{ quiz.title }} - QuizCraft</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8A2BE2;
+            --secondary: #E6007A;
+            --dark-bg: #0F0F2A;
+            --light-text: #E0E7FF;
+            --gray-text: #94A3B8;
+            --card-bg: rgba(30, 41, 59, 0.5);
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .quiz-card {
+            background: linear-gradient(145deg, rgba(60, 60, 60, 0.9), rgba(44, 44, 44, 0.9));
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--primary);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            animation: fadeIn 0.5s ease-in;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(138, 43, 226, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .language {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--light-text);
+            background-color: var(--card-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .difficulty {
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-transform: capitalize;
+        }
+
+        .difficulty.easy { background-color: #28a745; color: #ffffff; }
+        .difficulty.medium { background-color: #ffc107; color: #000000; }
+        .difficulty.hard { background-color: #dc3545; color: #ffffff; }
+
+        .title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            font-family: 'Manrope', sans-serif;
+            margin: 1rem 0 1.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            color: var(--light-text);
+        }
+
+        .topics {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            margin-bottom: 2rem;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
+        .go-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--white);
+            padding: 1rem 2.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .go-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(138, 43, 226, 0.5);
+        }
+
+        .go-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .go-btn:hover::after {
+            width: 300%;
+            height: 300%;
+        }
+
+        .logo {
+            max-width: 120px;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .quiz-card {
+                max-width: 90%;
+                padding: 2rem;
+            }
+            .title {
+                font-size: 1.8rem;
+            }
+            .go-btn {
+                padding: 0.8rem 2rem;
+                font-size: 1.1rem;
+            }
+            .topics {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-card" aria-label="Quiz details card">
+        <img src="{{ url_for('static', filename='images/LaunchQuest_logo.png', _external=True) }}" alt="LaunchQuest Logo" class="logo">
+        <div class="card-header">
+            <span class="language">{{ quiz.language }}</span>
+            <span class="difficulty {{ quiz.difficulty }}">{{ quiz.difficulty.capitalize() }}</span>
+        </div>
+        <h3 class="title">{{ quiz.title }}</h3>
+        <p class="topics">{{ quiz.topic }}</p>
+        <a href="{{ url_for('events.event_details', quiz_uuid=quiz.uuid, _external=True) }}" class="go-btn" target="_top" aria-label="Start the quiz">Go</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# nixpacks.toml
+
+[phases.setup]
+aptPkgs = ['wkhtmltopdf']
+ 
+ 
+[start]
+cmd = "gunicorn --timeout 120 app:app"

@@ -1,0 +1,130 @@
+{% for quiz in quizzes.items %}
+  {% set index = loop.index %}
+  {% set registration = user_registrations.get(quiz.id) %}
+  <div class="event-card" 
+       style="--animation-order: {{ index }};" 
+       data-quiz-id="{{ quiz.id }}" 
+       data-quiz-uuid="{{ quiz.uuid }}"
+       data-start-time="{{ quiz.start_time | utc_isoformat }}"
+       data-reg-end-time="{{ quiz.registration_end_time | utc_isoformat }}">
+    
+    <div class="card-header">
+      <div class="card-badges">
+        <span class="badge language">{{ quiz.language | upper }}</span>
+        <span class="badge difficulty {{ quiz.difficulty }}">{{ quiz.difficulty | capitalize }}</span>
+      </div>
+
+      <div class="kebab-container">
+        <button class="kebab-btn" aria-label="More options for {{ quiz.title }}" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+        </button>
+        <div class="kebab-menu" role="menu">
+          <a href="{{ url_for('events.event_details', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem"><i class="fas fa-info-circle" aria-hidden="true"></i> Event Details</a>
+          <a href="{{ url_for('quiz_taking.leaderboard', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem"><i class="fas fa-trophy" aria-hidden="true"></i> Leaderboard</a>
+          <a href="{{ url_for('events.quiz_chat', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem"><i class="fas fa-comments" aria-hidden="true"></i> Event Chat</a>
+          {% if current_user.is_admin or quiz.user_id == current_user.id %}
+            <a href="{{ url_for('events.event_dashboard', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem"><i class="fas fa-chart-line" aria-hidden="true"></i> Dashboard</a>
+          {% endif %}
+          <button class="kebab-item share-btn" role="menuitem" data-quiz-uuid="{{ quiz.uuid }}"><i class="fas fa-share-alt" aria-hidden="true"></i> Share</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-content">
+      {% if quiz.is_paid_event and quiz.winner_prizes %}
+        <div class="card-prize">
+          <i class="fas fa-award" aria-hidden="true"></i>
+          {% set top_prize = quiz.winner_prizes.split(',')[0] %}
+          {{ quiz.prize_currency | replace('INR', '₹') | replace('USD', '$') }}{{ top_prize }} Top Prize
+        </div>
+      {% endif %}
+
+      <h3 class="quiz-title">{{ quiz.title }}</h3>
+
+      <div class="creator-info">
+        <img src="{{ url_for('static', filename='images/default_avatar.png') }}" 
+             onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/default_avatar.jpg') }}';" 
+             alt="Avatar of {{ quiz.creator.username }}" class="creator-avatar">
+        <span class="creator-name">{{ quiz.creator.username }}</span>
+      </div>
+
+      <div class="timeline-info">
+        <div class="timeline-item">
+          <i class="fas fa-play-circle timeline-icon" aria-hidden="true"></i>
+          <div class="timeline-text">
+            <div class="timeline-label">Starts</div>
+            <div class="timeline-value">{{ quiz.start_time | to_localtime(current_user.timezone)  }}</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <i class="fas fa-stop-circle timeline-icon" aria-hidden="true"></i>
+          <div class="timeline-text">
+            <div class="timeline-label">Registration Ends</div>
+            <div class="timeline-value">{{ quiz.registration_end_time | to_localtime(current_user.timezone)   }}</div>
+          </div>
+        </div>
+      </div>
+
+      {% if quiz.start_time and (quiz.start_time | make_aware > now) %}
+        <div class="countdown">
+          <div class="countdown-label">Starts In</div>
+          <div class="countdown-timer" data-start="{{ quiz.start_time | utc_isoformat }}"></div>
+        </div>
+      {% endif %}
+
+      <div class="stats-container">
+        <div class="stat-item">
+          <div class="stat-value">{{ quiz.registered_count }}</div>
+          <div class="stat-label">Registered</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">{{ quiz.max_users }}</div>
+          <div class="stat-label">Max Users</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">{{ quiz.num_questions }}</div>
+          <div class="stat-label">Questions</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      {% set quiz_started = quiz.start_time and (quiz.start_time | make_aware <= now) %}
+      
+      {% if registration %}
+        <div class="status-badge {{ registration.status }}">
+          {{ registration.status | capitalize }} Registration
+        </div>
+      {% elif quiz.registration_closed %}
+        <div class="status-badge blnext-time" disabled>
+          Better Luck Next Time!
+        </div>
+      {% endif %}
+
+      {% if registration and registration.status == 'verified' %}
+        <a href="{{ url_for('quiz_taking.take_quiz', quiz_uuid=quiz.uuid) if quiz_started else '#' }}"
+           class="action-button start-quiz card-action-button"
+           data-status="verified"
+           data-href="{{ url_for('quiz_taking.take_quiz', quiz_uuid=quiz.uuid) }}"
+           {% if not quiz_started %}aria-disabled="true"{% endif %}>
+          {% if quiz_started %}Start Quiz{% else %}Starts Soon{% endif %}
+        </a>
+      {% elif quiz.registration_closed %}
+        <button class="action-button card-action-button" disabled>Registration Closed</button>
+      {% else %}
+        {% if registration and registration.status == 'pending' %}
+          <button class="action-button card-action-button" data-status="pending" disabled>Pending Verification</button>
+        {% elif registration and registration.status == 'rejected' %}
+          <a href="{{ url_for('events.event_details', quiz_uuid=quiz.uuid) }}" class="action-button resubmit card-action-button" data-status="rejected">Resubmit Payment</a>
+        {% else %}
+          <a href="{{ url_for('events.event_details', quiz_uuid=quiz.uuid) }}" class="action-button register-pay card-action-button" data-status="unregistered">Register Now</a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% else %}
+  <div class="no-results" style="grid-column: 1 / -1;">
+    <h3>No Events Found</h3>
+    <p>Check back later or adjust your filters.</p>
+  </div>
+{% endfor %}

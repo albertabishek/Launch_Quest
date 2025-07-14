@@ -1,0 +1,1482 @@
+{% extends 'base.html' %}
+
+{% block title %}My Quizzes - QuizCraft{% endblock %}
+
+{% block styles %}
+<style>
+  :root {
+    --primary: #8a2be2;
+    --primary-light: #9c4dff;
+    --secondary: #5e17eb;
+    --accent: #ff6b6b;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --dark: #121220;
+    --darker: #0c0c18;
+    --light: #f8f9fa;
+    --gray: #a0a0c0;
+    --card-bg: rgba(26, 26, 46, 0.7);
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.2);
+  }
+
+  main {
+    margin-top: 10rem;
+    margin-bottom: 5rem;
+    min-height: calc(100vh - 200px);
+    background: linear-gradient(135deg, var(--dark), #16213e);
+  }
+
+  .quizzes-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 2rem 0;
+    animation: fadeInDown 0.5s ease;
+  }
+
+  .usage-info {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    text-align: center;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .section-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    padding: 0.5rem;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    border: 1px solid var(--glass-border);
+  }
+
+  .tab-button {
+    padding: 0.8rem 2rem;
+    background: rgba(30, 30, 46, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    cursor: pointer;
+    color: var(--light);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tab-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: all 0.5s ease;
+  }
+
+  .tab-button:hover::before {
+    left: 100%;
+  }
+
+  .tab-button.active {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-color: transparent;
+    color: white;
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+    animation: fadeInUp 0.5s ease;
+  }
+
+  .grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .event-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transform-style: preserve-3d;
+    transform: perspective(1000px);
+    transition: all 0.3s ease-out;
+    opacity: 0;
+    animation: fadeInUp 0.5s ease-out forwards;
+    animation-delay: calc(0.08s * var(--animation-order));
+  }
+
+  .event-card:hover {
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+    border-color: rgba(138, 43, 226, 0.5);
+    transform: perspective(1000px) scale(1.02);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 1.5rem 0;
+  }
+
+  .card-badges {
+    display: flex;
+    gap: 0.7rem;
+  }
+
+  .badge {
+    padding: 0.35rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .badge.language {
+    background: rgba(94, 23, 235, 0.2);
+    color: #b89cff;
+  }
+
+  .badge.difficulty.easy {
+    background: rgba(40, 167, 69, 0.15);
+    color: #7dff9e;
+  }
+
+  .badge.difficulty.medium {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffdf7d;
+  }
+
+  .badge.difficulty.hard {
+    background: rgba(255, 107, 107, 0.15);
+    color: #ff9e9e;
+  }
+
+  .kebab-container {
+    position: relative;
+  }
+
+  .kebab-btn {
+    background: none;
+    border: none;
+    color: #a0a0c0;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+
+  .kebab-btn:hover {
+    color: #fff;
+    transform: rotate(90deg);
+    background: rgba(138, 43, 226, 0.2);
+  }
+
+  .kebab-menu {
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background: #121221;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    min-width: 200px;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px) scale(0.95);
+    transition: all 0.2s ease-out;
+  }
+
+  .kebab-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  .kebab-item {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 0.85rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: #e0e0e0;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid var(--glass-border);
+    cursor: pointer;
+  }
+
+  .kebab-item:last-child {
+    border-bottom: none;
+  }
+
+  .kebab-item:hover {
+    background: rgba(138, 43, 226, 0.15);
+    color: var(--primary);
+    padding-left: 1.5rem;
+  }
+
+  .card-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .card-prize {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 215, 0, 0.1);
+    color: #ffd700;
+    border-radius: 50px;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    animation: pulse 2s infinite;
+  }
+
+  .quiz-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    color: #fff;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .creator-info {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .creator-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+    background-color: var(--dark);
+    transition: transform 0.3s ease;
+  }
+
+  .event-card:hover .creator-avatar {
+    transform: scale(1.1);
+  }
+
+  .creator-name {
+    font-weight: 500;
+    color: #d1d1d1;
+  }
+
+  .timeline-info {
+    background: rgba(20, 20, 36, 0.5);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .timeline-item:not(:last-child) {
+    margin-bottom: 0.8rem;
+  }
+
+  .timeline-icon {
+    color: var(--primary);
+    font-size: 1.1rem;
+    margin-top: 0.2rem;
+  }
+
+  .timeline-label {
+    font-size: 0.9rem;
+    color: #a0a0c0;
+    margin-bottom: 0.2rem;
+  }
+
+  .timeline-value {
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .countdown {
+    background: rgba(40, 167, 69, 0.1);
+    border-radius: 12px;
+    padding: 0.8rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+  }
+
+  .countdown-label {
+    font-size: 0.9rem;
+    color: #7dff9e;
+    margin-bottom: 0.4rem;
+  }
+
+  .countdown-timer {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: monospace;
+  }
+
+  .stats-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-item {
+    text-align: center;
+    flex: 1;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 0.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.85rem;
+    color: #a0a0c0;
+  }
+
+  .topics-label {
+    font-weight: bold;
+    color: #e0e0e0;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+
+  .topics {
+    font-size: 1.1rem;
+    color: #d1d1d1;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+  }
+
+  .detail {
+    font-size: 1rem;
+    color: #d1d1d1;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    padding: 1.5rem;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .status-badge.verified {
+    background: rgba(40, 167, 69, 0.15);
+    color: #7dff9e;
+  }
+
+  .status-badge.pending {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffdf7d;
+  }
+
+  .status-badge.rejected {
+    background: rgba(220, 53, 69, 0.15);
+    color: #ff7d7d;
+  }
+
+  .action-button {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1.05rem;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+  }
+
+  .action-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 200%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.4);
+    transition: all 0.5s ease;
+    opacity: 0;
+  }
+
+  .action-button:hover:not(:disabled)::after {
+    width: 0;
+    opacity: 1;
+  }
+
+  .action-button:disabled,
+  .action-button.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: rgba(108, 117, 125, 0.2);
+    color: #d1d1d1;
+  }
+
+  .action-button.register-pay {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    color: #fff;
+  }
+
+  .action-button.start-quiz {
+    background: linear-gradient(90deg, var(--success), #1e7e34);
+    color: #fff;
+  }
+
+  .action-button.resubmit {
+    background: linear-gradient(90deg, var(--warning), #e0a800);
+    color: #000;
+  }
+
+  .action-button.manage-event {
+    background: linear-gradient(90deg, #2196F3, #21CBF3);
+    color: #fff;
+  }
+
+  .action-button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .modal.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  .modal-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(138, 43, 226, 0.4);
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal.active .modal-content {
+    transform: translateY(0);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #d1d1d1;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .modal-close:hover {
+    color: var(--primary);
+  }
+
+  .modal-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #fff;
+    text-align: center;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .progress-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+
+  .progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 4px;
+    width: 100%;
+    background-color: var(--glass-border);
+    z-index: 1;
+  }
+
+  .progress-bar .progress {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    z-index: 2;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  .step {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    flex: 1;
+  }
+
+  .step .step-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: var(--darker);
+    border: 2px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s ease;
+    font-weight: 600;
+    margin: 0 auto;
+  }
+
+  .step p {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+    color: var(--gray);
+    transition: color 0.4s ease;
+  }
+
+  .step.active .step-circle {
+    border-color: var(--primary);
+    background-color: var(--primary);
+    color: white;
+    transform: scale(1.1);
+  }
+
+  .step.active p {
+    color: var(--light);
+  }
+
+  .form-step {
+    display: none;
+    animation: slideIn 0.5s forwards;
+  }
+
+  .form-step.active {
+    display: block;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--light);
+  }
+
+  .form-group .description {
+    font-size: 0.85rem;
+    color: var(--gray);
+    margin-top: -0.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-input,
+  .form-select {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 10px;
+    background: rgba(20, 20, 36, 0.5);
+    border: 1px solid var(--glass-border);
+    color: var(--light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    appearance: none;
+  }
+
+  .form-input:focus,
+  .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
+    outline: none;
+  }
+
+  .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0a0c0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+  }
+
+  .checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .checkbox-item {
+    background: rgba(20, 20, 36, 0.5);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    cursor: pointer;
+    border: 1px solid var(--glass-border);
+    transition: all 0.2s ease;
+  }
+
+  .checkbox-item:hover {
+    background: rgba(20, 20, 36, 0.8);
+  }
+
+  .checkbox-item input[type="checkbox"] {
+    height: 1.2em;
+    width: 1.2em;
+    accent-color: var(--primary);
+  }
+
+  .switch-field {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: 0.4s;
+    border-radius: 34px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+  }
+
+  input:checked+.slider {
+    background-color: var(--primary);
+  }
+
+  input:checked+.slider:before {
+    transform: translateX(26px);
+  }
+
+  .form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2.5rem;
+  }
+
+  .form-btn {
+    padding: 0.8rem 1.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-next {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    color: white;
+  }
+
+  .btn-prev {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--light);
+  }
+
+  .form-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .form-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .share-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .share-input-group {
+    margin-bottom: 1rem;
+  }
+
+  .share-input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #d1d1d1;
+    font-weight: 500;
+  }
+
+  .share-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    background: rgba(20, 20, 36, 0.7);
+    border: 1px solid #4a4a69;
+    color: #fff;
+    font-size: 1rem;
+    font-family: monospace;
+  }
+
+  .share-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .share-button {
+    flex: 1;
+    padding: 0.8rem;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .share-button.copy {
+    background: rgba(138, 43, 226, 0.2);
+    color: var(--primary);
+    border: 1px solid rgba(138, 43, 226, 0.3);
+  }
+
+  .share-button.whatsapp {
+    background: rgba(37, 211, 102, 0.2);
+    color: #25d366;
+    border: 1px solid rgba(37, 211, 102, 0.3);
+  }
+
+  .share-button.telegram {
+    background: rgba(0, 136, 204, 0.2);
+    color: #0088cc;
+    border: 1px solid rgba(0, 136, 204, 0.3);
+  }
+
+  .share-button:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.05);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .grid-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .section-tabs {
+      justify-content: flex-start;
+    }
+
+    .tab-button {
+      padding: 0.6rem 1.5rem;
+      font-size: 0.95rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+  <div class="quizzes-container">
+    <h2>My Quizzes</h2>
+
+    {% if current_user.effective_plan != 'enterprise' %}
+    <div class="usage-info">
+      <p>Your Plan: <span class="plan-badge {{ current_user.effective_plan }}">{{ current_user.effective_plan.capitalize()
+          }}</span></p>
+      {% if current_user.effective_plan == 'free' or current_user.effective_plan == 'pro' %}
+      <p>You have {{ current_user.credits }} credits remaining this month.</p>
+      <p>You have taken {{ attempts_this_month }} quizzes this month.</p>
+      {% elif current_user.effective_plan == 'premium' %}
+      <p>You have {{ current_user.static_credits }} static and {{ current_user.dynamic_credits }} dynamic credits
+        remaining this month.</p>
+      <p>You have taken {{ static_attempts }} static and {{ dynamic_attempts }} dynamic quizzes this month.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="section-tabs" id="section-tabs">
+      <button class="tab-button active" data-tab="owned">Owned Quizzes</button>
+      <button class="tab-button" data-tab="registered">Registered Quizzes</button>
+    </div>
+
+    <div class="tab-content active" id="owned-tab">
+      <div class="grid-layout" id="owned-quiz-grid">
+        {% with quiz_list=owned_quizzes, is_owned=True, user_registrations=registrations,
+        user_attempts=user_attempts, highest_scores=highest_scores,
+        reg_counts=reg_counts, now=current_time %}
+        {% include '_my_quiz.html' %}
+        {% endwith %}
+      </div>
+    </div>
+
+    <div class="tab-content" id="registered-tab">
+      <div class="grid-layout" id="registered-quiz-grid">
+        {% with quiz_list=registered_quizzes, is_owned=False,
+        user_registrations=registered_quizzes_registrations,
+        user_attempts=user_attempts, highest_scores=highest_scores,
+        reg_counts=reg_counts, now=current_time %}
+        {% include '_my_quiz.html' %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="edit-modal">
+    <div class="modal-content">
+      <button type="button" class="modal-close">×</button>
+      <h2 class="modal-title">Edit Quiz</h2>
+      <form method="POST" enctype="multipart/form-data" id="edit-form"
+        action="{{ url_for('quiz_management.edit_quiz') }}">
+        {{ form.csrf_token }}
+        <input type="hidden" name="quiz_id" id="quiz_id">
+
+        <div class="progress-bar">
+          <div class="progress" id="progress"></div>
+          <div class="step active" data-title="Concept">
+            <div class="step-circle">1</div>
+            <p>Concept</p>
+          </div>
+          <div class="step" data-title="Structure">
+            <div class="step-circle">2</div>
+            <p>Structure</p>
+          </div>
+          <div class="step" data-title="Rules">
+            <div class="step-circle">3</div>
+            <p>Rules</p>
+          </div>
+          <div class="step" data-title="Design">
+            <div class="step-circle">4</div>
+            <p>Design</p>
+          </div>
+        </div>
+
+        <div class="form-step active">
+          <div class="form-group">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-input", placeholder="e.g., World History Trivia") }}
+          </div>
+          <div class="form-group">
+            {{ form.topic.label(class="form-label") }}
+            {{ form.topic(class="form-input", placeholder="e.g., Ancient Rome") }}
+          </div>
+          <div class="form-group">
+            {{ form.language.label(class="form-label") }}
+            {{ form.language(class="form-select") }}
+          </div>
+          <div class="form-buttons">
+            <button type="button" class="form-btn btn-next">Next <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <div class="form-step">
+          <div class="form-group">
+            {{ form.num_questions.label(class="form-label") }}
+            {{ form.num_questions(class="form-select") }}
+          </div>
+          <div class="form-group">
+            {{ form.question_types.label(class="form-label") }}
+            <div class="checkbox-group">
+              {% for subfield in form.question_types %}
+              <label class="checkbox-item">
+                {{ subfield(class="form-checkbox") }}
+                <span>{{ subfield.label.text }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="form-group">
+            {{ form.difficulty.label(class="form-label") }}
+            {{ form.difficulty(class="form-select") }}
+          </div>
+          <div class="form-group">
+            {{ form.generation_type.label(class="form-label") }}
+            {{ form.generation_type(class="form-select") }}
+          </div>
+          <div class="form-buttons">
+            <button type="button" class="form-btn btn-prev"><i class="fas fa-arrow-left"></i> Previous</button>
+            <button type="button" class="form-btn btn-next">Next <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <div class="form-step">
+          <div class="form-group">
+            {{ form.time_limit.label(class="form-label") }}
+            {{ form.time_limit(class="form-input", placeholder="0 for no limit") }}
+          </div>
+          <div class="form-group">
+            {{ form.max_attempts.label(class="form-label") }}
+            {{ form.max_attempts(class="form-input") }}
+          </div>
+          <div class="form-group">
+            {{ form.quiz_type.label(class="form-label") }}
+            {{ form.quiz_type(class="form-select") }}
+          </div>
+          <div id="event-fields" style="display:none;">
+            <div class="form-group">
+              {{ form.max_users.label(class="form-label") }}
+              {{ form.max_users(class="form-input") }}
+            </div>
+            <div class="form-group">
+              {{ form.start_time.label(class="form-label") }}
+              {{ form.start_time(class="form-input") }}
+            </div>
+            <div class="form-group">
+              {{ form.registration_end_time.label(class="form-label") }}
+              {{ form.registration_end_time(class="form-input") }}
+            </div>
+            <div class="form-group">
+              {{ form.password.label(class="form-label") }}
+              {{ form.password(class="form-input", placeholder="Optional: Leave blank to keep unchanged") }}
+            </div>
+            <div class="form-group">
+              <label class="form-label">Paid Event?</label>
+              <div class="switch-field">
+                {{ form.is_paid_event(class="switch-input") }}
+              </div>
+            </div>
+            <div id="paid-event-fields" style="display:none;">
+              <div class="form-group">{{ form.fee_amount.label }} {{ form.fee_amount(class="form-input") }}</div>
+              <div class="form-group">{{ form.qr_code.label }} {{ form.qr_code(class="form-input") }}</div>
+              <div class="form-group">{{ form.num_winners.label }} {{ form.num_winners(class="form-input") }}</div>
+              <div class="form-group">{{ form.winner_prizes.label }} {{ form.winner_prizes(class="form-input") }}</div>
+              <div class="form-group">{{ form.prize_currency.label }} {{ form.prize_currency(class="form-select") }}</div>
+            </div>
+          </div>
+          <div class="form-buttons">
+            <button type="button" class="form-btn btn-prev"><i class="fas fa-arrow-left"></i> Previous</button>
+            <button type="button" class="form-btn btn-next">Next <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+
+        <div class="form-step">
+          <div class="form-group">
+            {{ form.tags.label(class="form-label") }}
+            <p class="description">Separate tags with commas.</p>
+            {{ form.tags(class="form-input", placeholder="e.g., tech, programming") }}
+          </div>
+          <div class="form-group">
+            {{ form.interface_type.label(class="form-label") }}
+            {{ form.interface_type(class="form-select") }}
+          </div>
+          <div id="custom-interface-fields" style="display:none;">
+            <div class="form-group">
+              {{ form.background_color.label(class="form-label") }}
+              {{ form.background_color(class="form-input", type="color") }}
+            </div>
+            <div class="form-group">
+              {{ form.background_image.label(class="form-label") }}
+              {{ form.background_image(class="form-input") }}
+            </div>
+            <div class="form-group">
+              {{ form.logo.label(class="form-label") }}
+              {{ form.logo(class="form-input") }}
+            </div>
+          </div>
+          <div class="form-buttons">
+            <button type="button" class="form-btn btn-prev"><i class="fas fa-arrow-left"></i> Previous</button>
+            <button type="submit" class="form-btn btn-next">✨ Save Changes</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="share-modal">
+    <div class="modal-content">
+      <button class="modal-close">×</button>
+      <h2 class="modal-title">Share This Event</h2>
+      <div class="share-options">
+        <div class="share-input-group">
+          <label for="share-link">Direct Link</label>
+          <input type="text" id="share-link" class="share-input" readonly>
+        </div>
+        <div class="share-input-group">
+          <label for="embed-code">Embed Code</label>
+          <textarea id="embed-code" class="share-input" rows="3" readonly></textarea>
+        </div>
+        <div class="share-buttons">
+          <button class="share-button copy" id="copy-link-btn"><i class="fas fa-copy"></i> Copy Link</button>
+          <button class="share-button copy" id="copy-embed-btn"><i class="fas fa-code"></i> Copy Embed</button>
+        </div>
+        <div class="share-buttons">
+          <button class="share-button whatsapp" id="whatsapp-share-btn"><i class="fab fa-whatsapp"></i>
+            WhatsApp</button>
+          <button class="share-button telegram" id="telegram-share-btn"><i class="fab fa-telegram"></i>
+            Telegram</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const editModal = document.getElementById('edit-modal');
+    const shareModal = document.getElementById('share-modal');
+    const editCloseBtn = editModal.querySelector('.modal-close');
+    const shareCloseBtn = shareModal.querySelector('.modal-close');
+    const quizzes = {{ quizzes_data | tojson }};
+    const isFreePlan = {{ is_free_plan | tojson }};
+
+    // Tab switching
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+      });
+    });
+
+    // Countdown and state updater
+    function updateCardStates() {
+        const now = new Date();
+        document.querySelectorAll('.event-card').forEach(card => {
+            const startTimeAttr = card.dataset.startTime;
+            if (!startTimeAttr) return;
+
+            const startTime = new Date(startTimeAttr);
+            const hasStarted = now >= startTime;
+
+            const timerEl = card.querySelector('.countdown-timer');
+            if (timerEl) {
+                const diff = startTime - now;
+                if (diff <= 0) {
+                    const countdownWrapper = timerEl.closest('.countdown');
+                    if (countdownWrapper) {
+                        countdownWrapper.innerHTML = `<div class="timeline-value" style="text-align:center; width:100%; color: var(--success);">Event Started!</div>`;
+                    }
+                } else {
+                    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    timerEl.textContent = `${String(d).padStart(2, '0')}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+                }
+            }
+            
+            const actionButton = card.querySelector('.card-action-button[data-status="verified"]');
+            if(actionButton && hasStarted && actionButton.hasAttribute('aria-disabled')) {
+                actionButton.classList.remove('disabled');
+                actionButton.removeAttribute('aria-disabled');
+                actionButton.textContent = 'Start Quiz';
+                actionButton.href = actionButton.dataset.href;
+            }
+        });
+    }
+    setInterval(updateCardStates, 1000);
+    updateCardStates();
+
+    // Kebab menu, edit, delete, and share logic
+    document.addEventListener('click', e => {
+      const kebabBtn = e.target.closest('.kebab-btn');
+      if (kebabBtn) {
+        e.stopPropagation();
+        const menu = kebabBtn.nextElementSibling;
+        const isActive = menu.classList.contains('active');
+        document.querySelectorAll('.kebab-menu.active').forEach(m => m.classList.remove('active'));
+        if (!isActive) menu.classList.add('active');
+        return;
+      }
+
+      if (!e.target.closest('.kebab-container')) {
+        document.querySelectorAll('.kebab-menu.active').forEach(m => m.classList.remove('active'));
+      }
+
+      const shareBtn = e.target.closest('.share-btn');
+      if (shareBtn) {
+        e.preventDefault();
+        showShareModal(shareBtn.dataset.quizId);
+      }
+
+      const editBtn = e.target.closest('.edit-btn');
+      if (editBtn) {
+        e.preventDefault();
+        showEditModal(editBtn.dataset.quizId);
+      }
+
+      const deleteBtn = e.target.closest('.delete-btn');
+      if (deleteBtn) {
+        if (confirm('Are you sure you want to delete this quiz?')) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = `/delete_quiz/${deleteBtn.dataset.quizId}`;
+          const csrfInput = document.createElement('input');
+          csrfInput.type = 'hidden';
+          csrfInput.name = 'csrf_token';
+          csrfInput.value = '{{ csrf_token() }}';
+          form.appendChild(csrfInput);
+          document.body.appendChild(form);
+          form.submit();
+        }
+      }
+    });
+
+    // Edit modal form handler
+    const editForm = document.getElementById('edit-form');
+    const quizTypeSelect = editForm.querySelector('#quiz_type');
+    const eventFields = editForm.querySelector('#event-fields');
+    const isPaidEventSwitch = editForm.querySelector('#is_paid_event');
+    const paidEventFields = editForm.querySelector('#paid-event-fields');
+    const interfaceTypeSelect = editForm.querySelector('#interface_type');
+    const customInterfaceFields = editForm.querySelector('#custom-interface-fields');
+
+    function toggleModalFields() {
+      const isEvent = quizTypeSelect.value === 'event';
+      eventFields.style.display = isEvent ? 'block' : 'none';
+      
+      if (!isEvent) isPaidEventSwitch.checked = false;
+      paidEventFields.style.display = isEvent && isPaidEventSwitch.checked ? 'block' : 'none';
+
+      customInterfaceFields.style.display = interfaceTypeSelect.value === 'custom' ? 'block' : 'none';
+
+      if(isFreePlan) {
+        quizTypeSelect.disabled = true;
+        interfaceTypeSelect.disabled = true;
+      }
+    }
+
+    quizTypeSelect.addEventListener('change', toggleModalFields);
+    isPaidEventSwitch.addEventListener('change', toggleModalFields);
+    interfaceTypeSelect.addEventListener('change', toggleModalFields);
+
+    // Edit Modal population
+    function showEditModal(quizId) {
+      const quiz = quizzes.find(q => q.id.toString() === quizId);
+      if (!quiz) return;
+      
+      editForm.querySelector('#quiz_id').value = quiz.id;
+      editForm.querySelector('#title').value = quiz.title;
+      editForm.querySelector('#topic').value = quiz.topic;
+      editForm.querySelector('#language').value = quiz.language;
+      editForm.querySelector('#num_questions').value = quiz.num_questions;
+      
+      editForm.querySelectorAll('input[name="question_types"]').forEach(checkbox => {
+        checkbox.checked = quiz.question_types.includes(checkbox.value);
+      });
+
+      editForm.querySelector('#difficulty').value = quiz.difficulty;
+      editForm.querySelector('#generation_type').value = quiz.generation_type;
+      editForm.querySelector('#time_limit').value = quiz.time_limit || '';
+      editForm.querySelector('#max_attempts').value = quiz.max_attempts;
+      editForm.querySelector('#quiz_type').value = quiz.quiz_type;
+      editForm.querySelector('#max_users').value = quiz.max_users || 1;
+      
+      const startTime = quiz.start_time ? quiz.start_time.replace(' ', 'T') : '';
+      editForm.querySelector('#start_time').value = startTime;
+      
+      const regEndTime = quiz.registration_end_time ? quiz.registration_end_time.replace(' ', 'T') : '';
+      editForm.querySelector('#registration_end_time').value = regEndTime;
+      
+      editForm.querySelector('#is_paid_event').checked = quiz.is_paid_event;
+      editForm.querySelector('#fee_amount').value = quiz.fee_amount || 0;
+      editForm.querySelector('#num_winners').value = quiz.num_winners || 1;
+      editForm.querySelector('#winner_prizes').value = quiz.winner_prizes ? quiz.winner_prizes.join(',') : '';
+      editForm.querySelector('#prize_currency').value = quiz.prize_currency || 'INR';
+
+      editForm.querySelector('#interface_type').value = quiz.interface_type;
+      editForm.querySelector('#background_color').value = quiz.background_color || '#000000';
+      editForm.querySelector('#tags').value = quiz.tags || '';
+
+      toggleModalFields();
+      editModal.classList.add('active');
+    }
+
+    // Modal navigation (multi-step form)
+    const prevBtns = document.querySelectorAll('.btn-prev');
+    const nextBtns = document.querySelectorAll('.btn-next');
+    const progress = document.getElementById('progress');
+    const formSteps = document.querySelectorAll('.form-step');
+    const progressSteps = document.querySelectorAll('.progress-bar .step');
+    let formStepsNum = 0;
+
+    nextBtns.forEach(btn => {
+        if(btn.type !== 'submit') {
+            btn.addEventListener('click', () => {
+                formStepsNum++;
+                updateFormSteps();
+                updateProgressBar();
+            });
+        }
+    });
+
+    prevBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        formStepsNum--;
+        updateFormSteps();
+        updateProgressBar();
+      });
+    });
+
+    function updateFormSteps() {
+      formSteps.forEach(step => step.classList.remove('active'));
+      formSteps[formStepsNum].classList.add('active');
+    }
+
+    function updateProgressBar() {
+      progressSteps.forEach((step, idx) => {
+        step.classList.toggle('active', idx <= formStepsNum);
+      });
+      progress.style.width = ((formStepsNum) / (progressSteps.length - 1)) * 100 + '%';
+    }
+
+    // Share Modal
+    function showShareModal(quizId) {
+      const quiz = quizzes.find(q => q.id.toString() === quizId);
+      if (!quiz || quiz.quiz_type === 'personal') return;
+      const quizUrl = `${window.location.origin}/event/${quiz.uuid}`;
+      const embedCode = `<iframe src="${window.location.origin}/embed_quiz/${quiz.uuid}" width="100%" height="500" frameborder="0"></iframe>`;
+      document.getElementById('share-link').value = quizUrl;
+      document.getElementById('embed-code').value = embedCode;
+      shareModal.classList.add('active');
+    }
+
+    // Clipboard and sharing functions
+    async function copyToClipboard(element, button) {
+      try {
+        await navigator.clipboard.writeText(element.value);
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => { button.innerHTML = originalHTML; }, 2000);
+      } catch (err) {
+        toastr.error('Failed to copy text.');
+      }
+    }
+
+    document.getElementById('copy-link-btn').addEventListener('click', (e) => copyToClipboard(document.getElementById('share-link'), e.currentTarget));
+    document.getElementById('copy-embed-btn').addEventListener('click', (e) => copyToClipboard(document.getElementById('embed-code'), e.currentTarget));
+    document.getElementById('whatsapp-share-btn').addEventListener('click', () => {
+      const quizUrl = document.getElementById('share-link').value;
+      window.open(`https://wa.me/?text=${encodeURIComponent(`Check out this quiz: ${quizUrl}`)}`, '_blank');
+    });
+    document.getElementById('telegram-share-btn').addEventListener('click', () => {
+      const quizUrl = document.getElementById('share-link').value;
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(quizUrl)}&text=${encodeURIComponent('Check out this quiz!')}`, '_blank');
+    });
+    
+    // Modal closing logic
+    [editCloseBtn, shareCloseBtn].forEach(btn => btn.addEventListener('click', () => {
+        editModal.classList.remove('active');
+        shareModal.classList.remove('active');
+    }));
+    window.addEventListener('click', (e) => {
+      if (e.target === editModal) editModal.classList.remove('active');
+      if (e.target === shareModal) shareModal.classList.remove('active');
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        editModal.classList.remove('active');
+        shareModal.classList.remove('active');
+      }
+    });
+
+    // Card hover effect
+    document.querySelectorAll('.grid-layout').forEach(grid => {
+        grid.addEventListener('mousemove', e => {
+            const card = e.target.closest('.event-card');
+            if (!card) return;
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const rotateY = (x - rect.width / 2) / 20;
+            const rotateX = (rect.height / 2 - y) / 20;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+        });
+        grid.addEventListener('mouseleave', () => {
+            grid.querySelectorAll('.event-card').forEach(card => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+            });
+        });
+    });
+
+  });
+</script>
+{% endblock %}

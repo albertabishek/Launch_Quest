@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Events - QuizCraft{% endblock %}
+
+{% block styles %}
+<style>
+  :root {
+    --primary: #8a2be2;
+    --secondary: #5e17eb;
+    --accent: #ff6b6b;
+    --light: #f8f9fa;
+    --dark: #1a1a2e; /* Slightly lighter than pure black */
+    --card-bg: rgba(26, 26, 46, 0.7);
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .events-container{max-width:1400px;margin:6rem auto 3rem;padding:0 1.5rem}
+  .page-header{text-align:center;margin-bottom:2.5rem}
+  .page-header h1{font-size:2.8rem;font-weight:800;background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:.5rem}
+  .page-header p{font-size:1.2rem;color:#d1d1d1;max-width:600px;margin:0 auto}
+  .controls-section{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem;align-items:center;padding:1.2rem;background:var(--glass);backdrop-filter:blur(10px);border-radius:16px;border:1px solid var(--glass-border)}
+  .search-container{position:relative;flex-grow:1;max-width:400px}
+  #search-input{width:100%;padding:.9rem 1.2rem .9rem 3rem;font-size:1.05rem;border-radius:12px;background:rgba(30,30,46,.7);color:var(--light);border:1px solid #4a4a69;transition:all .3s ease}
+  #search-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(138,43,226,.2)}
+  .search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#a0a0c0}
+  .filters-container{display:flex;gap:1rem;flex-wrap:wrap}
+  .filter-select{padding:.8rem 1.2rem;background-color:rgba(30,30,46,.7);color:var(--light);border:1px solid #4a4a69;border-radius:12px;cursor:pointer;min-width:150px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0a0c0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 1rem center;background-size:1em}
+  .grid-layout{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:2.5rem;margin-bottom:3rem}
+  .event-card{background:var(--card-bg);backdrop-filter:blur(12px);border-radius:20px;border:1px solid var(--glass-border);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.2);transform-style:preserve-3d;transform:perspective(1000px);transition:all .3s ease-out;opacity:0;animation:fadeInUp .5s ease-out forwards;animation-delay:calc(.08s * var(--animation-order))}
+  .event-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--accent));transform:scaleX(0);transform-origin:left;transition:transform .4s ease-in-out}
+  .event-card:hover{box-shadow:0 20px 45px rgba(0,0,0,.3);border-color:rgba(138,43,226,.5)}
+  .event-card:hover::before{transform:scaleX(1)}
+  @keyframes fadeInUp{from{opacity:0;transform:perspective(1000px) translateY(30px)}to{opacity:1;transform:perspective(1000px) translateY(0)}}
+  .card-header{display:flex;justify-content:space-between;align-items:center;padding:1.2rem 1.5rem 0}
+  .card-badges{display:flex;gap:.7rem}
+  .badge{padding:.35rem .8rem;border-radius:50px;font-size:.85rem;font-weight:600}
+  .badge.language{background:rgba(94,23,235,.2);color:#b89cff}
+  .badge.difficulty.easy{background:rgba(40,167,69,.15);color:#7dff9e}
+  .badge.difficulty.medium{background:rgba(255,193,7,.15);color:#ffdf7d}
+  .badge.difficulty.hard{background:rgba(255,107,107,.15);color:#ff9e9e}
+  .card-content{padding:1.5rem;display:flex;flex-direction:column;flex-grow:1}
+  .card-prize{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;background:rgba(255,215,0,.1);color:#ffd700;border-radius:50px;font-weight:600;margin-bottom:1rem;border:1px solid rgba(255,215,0,.2)}
+  .quiz-title{font-size:1.6rem;font-weight:700;margin-bottom:.8rem;color:#fff;line-height:1.3}
+  .creator-info{display:flex;align-items:center;gap:.8rem;margin-bottom:1.5rem}
+  .creator-avatar{width:36px;height:36px;border-radius:50%;-o-object-fit:cover;object-fit:cover;border:2px solid var(--primary);background-color:var(--dark)}
+  .creator-name{font-weight:500;color:#d1d1d1}
+  .timeline-info{background:rgba(20,20,36,.5);border-radius:12px;padding:1rem;margin-bottom:1.5rem}
+  .timeline-item{display:flex;align-items:flex-start;gap:.8rem}
+  .timeline-item:not(:last-child){margin-bottom:.8rem}
+  .timeline-icon{color:var(--primary);font-size:1.1rem;margin-top:.2rem}
+  .timeline-label{font-size:.9rem;color:#a0a0c0;margin-bottom:.2rem}
+  .timeline-value{font-weight:500;color:#fff}
+  .countdown{background:rgba(40,167,69,.1);border-radius:12px;padding:.8rem;text-align:center;margin-bottom:1.5rem;border:1px solid rgba(40,167,69,.2)}
+  .countdown-label{font-size:.9rem;color:#7dff9e;margin-bottom:.4rem}
+  .countdown-timer{font-size:1.4rem;font-weight:700;color:#fff;font-family:monospace}
+  .stats-container{display:flex;justify-content:space-between;margin-bottom:1.5rem}
+  .stat-item{text-align:center;flex:1}
+  .stat-value{font-size:1.4rem;font-weight:700;color:#fff;margin-bottom:.2rem}
+  .stat-label{font-size:.85rem;color:#a0a0c0}
+  .card-footer{margin-top:auto;padding-top:1rem}
+  .status-badge{display:inline-block;padding:.5rem 1rem;border-radius:50px;font-weight:600;font-size:.9rem;margin-bottom:1rem;width:100%;text-align:center}
+  .status-badge.verified{background:rgba(40,167,69,.15);color:#7dff9e}
+  .status-badge.pending{background:rgba(255,193,7,.15);color:#ffdf7d}
+  .status-badge.rejected{background:rgba(220,53,69,.15);color:#ff7d7d}
+  .status-badge.blnext-time{background:rgba(255,255,255,.4);color:#d1d1d1}
+  .action-button{display:block;width:100%;padding:1rem;border-radius:12px;font-weight:700;text-align:center;transition:all .3s ease;border:none;cursor:pointer;font-size:1.05rem;position:relative;overflow:hidden;text-decoration:none}
+  .action-button::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(45deg);width:200%;height:2px;background:rgba(255,255,255,.4);transition:all .5s ease;opacity:0}
+  .action-button:hover:not(:disabled)::after{width:0;opacity:1}
+  .action-button:disabled,.action-button.disabled{opacity:.6;cursor:not-allowed;background:rgba(108,117,125,.2);color:#d1d1d1}
+  .action-button.register-pay{background:linear-gradient(90deg,var(--primary),var(--secondary));color:#fff}
+  .action-button.start-quiz{background:linear-gradient(90deg,var(--success),#1e7e34);color:#fff}
+  .action-button.resubmit{background:linear-gradient(90deg,var(--warning),#e0a800);color:#000}
+  .action-button:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+  .kebab-container{position:relative}
+  .kebab-btn{background:0 0;border:none;color:#a0a0c0;font-size:1.2rem;cursor:pointer;padding:.5rem;border-radius:50%;transition:all .3s}
+  .kebab-btn:hover{color:#fff;transform:rotate(90deg)}
+  .kebab-menu{position:absolute;top:110%;right:0;background:#121221;backdrop-filter:blur(10px);border:1px solid var(--glass-border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.2);min-width:200px;z-index:100;opacity:0;visibility:hidden;transform:translateY(10px) scale(.95);transition:all .2s ease-out}
+  .kebab-menu.active{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+  .kebab-item{background:0 0;border:none;width:100%;text-align:left;font-family:inherit;font-size:1rem;padding:.85rem 1.2rem;display:flex;align-items:center;gap:.8rem;color:#e0e0e0;text-decoration:none;transition:all .2s ease;border-bottom:1px solid var(--glass-border);cursor:pointer}
+  .kebab-item:last-child{border-bottom:none}
+  .kebab-item:hover{background:rgba(138,43,226,.15);color:var(--primary);padding-left:1.5rem}
+  .kebab-item i{width:20px;text-align:center}
+  .share-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+  .share-modal-content{background:rgba(30,30,46,.95);border-radius:16px;padding:2rem;width:90%;max-width:500px;box-shadow:0 15px 50px rgba(0,0,0,.4);position:relative;border:1px solid rgba(138,43,226,.4)}
+  .share-modal-close{position:absolute;top:1rem;right:1rem;background:0 0;border:none;color:#d1d1d1;font-size:1.5rem;cursor:pointer}
+  .share-modal-title{font-size:1.8rem;margin-bottom:1.5rem;color:#fff;text-align:center}
+  .share-input-group{margin-bottom:1rem}
+  .share-input-group label{display:block;margin-bottom:.5rem;color:#d1d1d1;font-weight:500}
+  .share-input{width:100%;padding:.8rem 1rem;border-radius:12px;background:rgba(20,20,36,.7);border:1px solid #4a4a69;color:#fff;font-size:1rem;font-family:monospace}
+  .share-buttons{display:flex;gap:1rem;margin-top:1rem}
+  .share-button{flex:1;padding:.8rem;border-radius:12px;border:none;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:all .3s ease}
+  .share-button.copy{background:rgba(138,43,226,.2);color:var(--primary);border:1px solid rgba(138,43,226,.3)}
+  .share-button.whatsapp{background:rgba(37,211,102,.2);color:#25d366;border:1px solid rgba(37,211,102,.3)}
+  .share-button.telegram{background:rgba(0,136,204,.2);color:#0088cc;border:1px solid rgba(0,136,204,.3)}
+  .share-button:hover{filter:brightness(1.2)}
+  .loader{display:none;width:40px;height:40px;border:4px solid var(--glass);border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin:3rem auto}
+  .no-results{text-align:center;padding:3rem;grid-column:1 / -1}
+  @keyframes spin{100%{transform:rotate(360deg)}}
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+  <div class="events-container">
+    <div class="page-header">
+      <h1>Upcoming Quiz Events</h1>
+      <p>Compete, win prizes, and showcase your knowledge in these exciting events.</p>
+    </div>
+
+    <div class="controls-section">
+      <div class="search-container">
+        <label for="search-input" class="visually-hidden">Search Events</label>
+        <i class="fas fa-search search-icon" aria-hidden="true"></i>
+        <input type="text" id="search-input" placeholder="Search events or creators...">
+      </div>
+      <div class="filters-container">
+        <select class="filter-select" id="difficulty-filter" aria-label="Filter by difficulty">
+          <option value="">All Difficulties</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
+        </select>
+        <select class="filter-select" id="language-filter" aria-label="Filter by language">
+          <option value="">All Languages</option><option value="en">English</option><option value="es">Spanish</option><option value="fr">French</option>
+        </select>
+        <select class="filter-select" id="status-filter" aria-label="Filter by status">
+            <option value="">All Statuses</option><option value="open">Registration Open</option><option value="closed">Registration Closed</option><option value="started">Event Started</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid-layout" id="quiz-grid">
+      {% include '_quiz_grid.html' %}
+    </div>
+
+    <div class="loader" id="loader"></div>
+  </div>
+
+  <div class="share-modal" id="share-modal" role="dialog" aria-modal="true" aria-labelledby="share-modal-title" hidden>
+    <div class="share-modal-content">
+      <button class="share-modal-close" aria-label="Close share dialog">×</button>
+      <h3 class="share-modal-title" id="share-modal-title">Share This Event</h3>
+      <div class="share-options">
+        <div class="share-input-group">
+          <label for="share-link">Direct Link</label>
+          <input type="text" id="share-link" class="share-input" readonly>
+        </div>
+        <div class="share-input-group">
+          <label for="embed-code">Embed Code</label>
+          <textarea id="embed-code" class="share-input" rows="3" readonly></textarea>
+        </div>
+        <div class="share-buttons">
+          <button class="share-button copy" id="copy-link-btn"><i class="fas fa-copy" aria-hidden="true"></i> Copy Link</button>
+          <button class="share-button copy" id="copy-embed-btn"><i class="fas fa-code" aria-hidden="true"></i> Copy Embed</button>
+        </div>
+        <div class="share-buttons">
+            <button class="share-button whatsapp" id="whatsapp-share-btn"><i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp</button>
+            <button class="share-button telegram" id="telegram-share-btn"><i class="fab fa-telegram" aria-hidden="true"></i> Telegram</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const grid = document.getElementById('quiz-grid');
+    const loader = document.getElementById('loader');
+    const filters = {
+        search: document.getElementById('search-input'),
+        difficulty: document.getElementById('difficulty-filter'),
+        language: document.getElementById('language-filter'),
+        status: document.getElementById('status-filter')
+    };
+    let searchTimeout;
+    const shareModal = document.getElementById('share-modal');
+    const shareLinkInput = document.getElementById('share-link');
+    const embedCodeInput = document.getElementById('embed-code');
+
+    function updateCardStates() {
+        const now = new Date();
+        document.querySelectorAll('.event-card').forEach(card => {
+            const startTimeAttr = card.dataset.startTime;
+            const regEndTimeAttr = card.dataset.regEndTime;
+            if (!startTimeAttr || !regEndTimeAttr) return;
+
+            const startTime = new Date(startTimeAttr);
+            const regEndTime = new Date(regEndTimeAttr);
+            
+            const hasStarted = now >= startTime;
+            const regHasEnded = now >= regEndTime;
+
+            // --- Update Countdown Timer ---
+            const timerEl = card.querySelector('.countdown-timer');
+            if (timerEl) {
+                const diff = startTime - now;
+                if (diff <= 0) {
+                    const countdownWrapper = timerEl.closest('.countdown');
+                    if (countdownWrapper) {
+                        countdownWrapper.innerHTML = `<div class="timeline-value" style="text-align:center; width:100%; color: var(--success);">Event Started!</div>`;
+                    }
+                } else {
+                    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    timerEl.textContent = `${String(d).padStart(2, '0')}d ${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+                }
+            }
+            
+            // --- Update Action Button State ---
+            const actionButton = card.querySelector('.card-action-button');
+            if (!actionButton) return;
+
+            // If user is verified, only the "Starts Soon" -> "Start Quiz" transition matters.
+            const isVerified = actionButton.dataset.status === 'verified';
+            if (isVerified) {
+                if (hasStarted && actionButton.hasAttribute('aria-disabled')) {
+                    actionButton.classList.remove('disabled');
+                    actionButton.removeAttribute('aria-disabled');
+                    actionButton.textContent = 'Start Quiz';
+                    actionButton.href = actionButton.dataset.href;
+                }
+                return; // Skip further logic for verified users
+            }
+
+            // For non-verified users, if registration has ended, show "Registration Closed".
+            if (regHasEnded) {
+                actionButton.outerHTML = '<button class="action-button" disabled>Registration Closed</button>';
+            }
+        });
+    }
+
+    function applyFilters() {
+        loader.style.display = 'block';
+        grid.style.opacity = '0.5';
+        const params = new URLSearchParams(Object.fromEntries(Object.entries(filters).map(([key, el]) => [key, el.value])));
+        fetch(`{{ url_for('events.search_events') }}?${params.toString()}`)
+            .then(response => response.text())
+            .then(html => {
+                grid.innerHTML = html;
+            })
+            .catch(console.error)
+            .finally(() => {
+                loader.style.display = 'none';
+                grid.style.opacity = '1';
+                updateCardStates(); // Run once for new content
+            });
+    }
+
+    Object.values(filters).forEach(filter => {
+        filter.addEventListener('input', () => {
+             if (filter.id === 'search-input') {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(applyFilters, 400);
+             } else {
+                applyFilters();
+             }
+        });
+    });
+
+    function showShareModal(quizUuid) {
+        const quizUrl = `${window.location.origin}/event/${quizUuid}`;
+        const embedCode = `<iframe src="${window.location.origin}/embed_quiz/${quizUuid}" width="100%" height="500" frameborder="0"></iframe>`;
+        shareLinkInput.value = quizUrl;
+        embedCodeInput.value = embedCode;
+        shareModal.style.display = 'flex';
+        shareModal.hidden = false;
+    }
+    
+    function hideShareModal() {
+        shareModal.style.display = 'none';
+        shareModal.hidden = true;
+    }
+
+    async function copyToClipboard(element, button) {
+        if (!navigator.clipboard) { return; }
+        try {
+            await navigator.clipboard.writeText(element.value);
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => { button.innerHTML = originalHTML; }, 2000);
+        } catch (err) { console.error('Failed to copy!', err); }
+    }
+
+    // --- Global Event Listener using Delegation ---
+    document.addEventListener('click', e => {
+        const kebabBtn = e.target.closest('.kebab-btn');
+        if (kebabBtn) {
+            e.stopPropagation();
+            const menu = kebabBtn.nextElementSibling;
+            const isActive = menu.classList.contains('active');
+            document.querySelectorAll('.kebab-menu.active').forEach(m => m.classList.remove('active'));
+            if (!isActive) menu.classList.add('active');
+            return;
+        }
+
+        const shareBtn = e.target.closest('.share-btn');
+        if (shareBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            showShareModal(shareBtn.dataset.quizUuid);
+            return;
+        }
+        
+        if (!e.target.closest('.kebab-container')) {
+            document.querySelectorAll('.kebab-menu.active').forEach(m => m.classList.remove('active'));
+        }
+
+        if (e.target.matches('.share-modal-close') || e.target.matches('.share-modal')) {
+            hideShareModal();
+        }
+        
+        const copyLinkBtn = e.target.closest('#copy-link-btn');
+        if(copyLinkBtn) copyToClipboard(shareLinkInput, copyLinkBtn);
+
+        const copyEmbedBtn = e.target.closest('#copy-embed-btn');
+        if(copyEmbedBtn) copyToClipboard(embedCodeInput, copyEmbedBtn);
+        
+        if(e.target.closest('#whatsapp-share-btn')) window.open(`https://wa.me/?text=${encodeURIComponent(`Check out this quiz: ${shareLinkInput.value}`)}`, '_blank');
+        if(e.target.closest('#telegram-share-btn')) window.open(`https://t.me/share/url?url=${encodeURIComponent(shareLinkInput.value)}&text=${encodeURIComponent('Check out this quiz!')}`, '_blank');
+    });
+
+    grid.addEventListener('mousemove', e => {
+        const card = e.target.closest('.event-card');
+        if (!card) return;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateY = (x - centerX) / 20;
+        const rotateX = (centerY - y) / 20;
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+    });
+
+    grid.addEventListener('mouseleave', () => {
+        grid.querySelectorAll('.event-card').forEach(card => {
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+        });
+    }, true);
+    
+    // Initial and periodic calls
+    updateCardStates();
+    setInterval(updateCardStates, 1000);
+});
+</script>
+{% endblock %}

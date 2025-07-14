@@ -1,0 +1,173 @@
+{% for quiz in quiz_list %}
+  {% set registration = user_registrations.get(quiz.id) %}
+  <div class="event-card" 
+       data-quiz-id="{{ quiz.id }}" 
+       data-quiz-uuid="{{ quiz.uuid }}" 
+       {% if quiz.quiz_type == 'event' %}
+         data-start-time="{{ quiz.start_time | utc_isoformat }}"
+       {% endif %}
+       style="--animation-order: {{ loop.index0 }};">
+    
+    <div class="card-header">
+      <div class="card-badges">
+        <span class="badge language">{{ quiz.language | upper }}</span>
+        <span class="badge difficulty {{ quiz.difficulty }}">{{ quiz.difficulty | capitalize }}</span>
+      </div>
+      <div class="kebab-container">
+        <button class="kebab-btn" aria-label="More options for {{ quiz.title }}">
+          <i class="fas fa-ellipsis-v"></i>
+        </button>
+        <div class="kebab-menu" role="menu">
+          {% if is_owned %}
+            <button class="kebab-item edit-btn" data-quiz-id="{{ quiz.id }}" role="menuitem">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="kebab-item delete-btn" data-quiz-id="{{ quiz.id }}" role="menuitem">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+            {% if quiz.quiz_type == 'event' %}
+              <button class="kebab-item share-btn" data-quiz-id="{{ quiz.id }}" role="menuitem">
+                <i class="fas fa-share-alt"></i> Share
+              </button>
+              <a href="{{ url_for('events.quiz_chat', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem">
+                <i class="fas fa-comments"></i> Chat
+              </a>
+              {% if quiz.is_paid_event %}
+                <a href="{{ url_for('events.event_details', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem">
+                  <i class="fas fa-money-bill"></i> Payment
+                </a>
+                <a href="{{ url_for('events.event_dashboard', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem">
+                  <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+              {% endif %}
+            {% endif %}
+            <a href="{{ url_for('quiz_taking.leaderboard', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem">
+              <i class="fas fa-trophy"></i> Leaderboard
+            </a>
+          {% else %}
+            <a href="{{ url_for('events.event_details', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem">
+              <i class="fas fa-info-circle"></i> Event Details
+            </a>
+            <a href="{{ url_for('quiz_taking.leaderboard', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem">
+              <i class="fas fa-trophy"></i> Leaderboard
+            </a>
+            <a href="{{ url_for('events.quiz_chat', quiz_uuid=quiz.uuid) }}" class="kebab-item" role="menuitem">
+              <i class="fas fa-comments"></i> Event Chat
+            </a>
+            <button class="kebab-item share-btn" data-quiz-id="{{ quiz.id }}" role="menuitem">
+              <i class="fas fa-share-alt"></i> Share
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card-content">
+      {% if quiz.is_paid_event and quiz.winner_prizes %}
+        <div class="card-prize">
+          <i class="fas fa-award"></i>
+          {% set top_prize = quiz.winner_prizes.split(',')[0] %}
+          {{ quiz.prize_currency | replace('INR', '₹') | replace('USD', '$') }}{{ top_prize }} Top Prize
+        </div>
+      {% endif %}
+      <h3 class="quiz-title">{{ quiz.title }}</h3>
+      <div class="creator-info">
+        <img src="{{ url_for('static', filename='images/default_avatar.png') }}" 
+             onerror="this.onerror=null;this.src='{{ url_for('static', filename='images/default_avatar.jpg') }}';"
+             alt="Avatar of {{ quiz.creator.username }}" class="creator-avatar">
+        <span class="creator-name">{{ quiz.creator.username }}</span>
+      </div>
+
+      {% if quiz.quiz_type == 'event' %}
+        <div class="timeline-info">
+          <div class="timeline-item">
+            <i class="fas fa-play-circle timeline-icon"></i>
+            <div class="timeline-text">
+              <div class="timeline-label">Starts</div>
+              <div class="timeline-value">{{ quiz.start_time | to_localtime(current_user.timezone)   }}</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <i class="fas fa-stop-circle timeline-icon"></i>
+            <div class="timeline-text">
+              <div class="timeline-label">Registration Ends</div>
+              <div class="timeline-value">{{ quiz.registration_end_time | to_localtime(current_user.timezone) }}</div>
+            </div>
+          </div>
+        </div>
+        {% if quiz.start_time and (quiz.start_time | make_aware > now) %}
+          <div class="countdown">
+            <div class="countdown-label">Starts In</div>
+            <div class="countdown-timer"></div>
+          </div>
+        {% endif %}
+        <div class="stats-container">
+          <div class="stat-item">
+            <div class="stat-value">{{ reg_counts[quiz.id] }}</div>
+            <div class="stat-label">Registered</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ quiz.max_users }}</div>
+            <div class="stat-label">Max Users</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">{{ quiz.num_questions }}</div>
+            <div class="stat-label">Questions</div>
+          </div>
+        </div>
+      {% else %}
+        <p class="topics-label">Topics:</p>
+        <div class="topics">{{ quiz.topic }}</div>
+        <p class="detail">Attempts Left: {{ quiz.max_attempts - user_attempts[quiz.id] }}</p>
+        <p class="detail">Highest Score: {{ highest_scores[quiz.id] if highest_scores[quiz.id] is not none else 'Not attempted' }}</p>
+      {% endif %}
+    </div>
+
+    <div class="card-footer">
+      {% if is_owned %}
+        {% if quiz.quiz_type == 'personal' %}
+          <a href="{{ url_for('quiz_taking.take_quiz', quiz_uuid=quiz.uuid) }}" 
+             class="action-button start-quiz" 
+             {% if quiz.password %}data-has-password="true"{% endif %}>
+            Start Quiz
+          </a>
+        {% else %}
+          <a href="{{ url_for('events.event_dashboard', quiz_uuid=quiz.uuid) }}" 
+             class="action-button manage-event">
+            Manage Event
+          </a>
+        {% endif %}
+      {% else %}
+        {% set quiz_started = quiz.start_time and (quiz.start_time | make_aware <= now)%}
+        {% if registration and registration.status %}
+          <div class="status-badge {{ registration.status }}">
+            {{ registration.status | capitalize }} Registration
+          </div>
+        {% endif %}
+        {% if registration and registration.status == 'verified' %}
+          <a href="{{ url_for('quiz_taking.take_quiz', quiz_uuid=quiz.uuid) if quiz_started else '#' }}"
+             class="action-button start-quiz card-action-button"
+             data-status="verified"
+             data-href="{{ url_for('quiz_taking.take_quiz', quiz_uuid=quiz.uuid) }}"
+             {% if not quiz_started %}aria-disabled="true"{% endif %}>
+            {% if quiz_started %}Start Quiz{% else %}Starts Soon{% endif %}
+          </a>
+        {% elif quiz.registration_closed %}
+          <button class="action-button card-action-button" disabled>Registration Closed</button>
+        {% elif registration and registration.status == 'pending' %}
+          <button class="action-button card-action-button" disabled>Pending Verification</button>
+        {% elif registration and registration.status == 'rejected' %}
+          <a href="{{ url_for('events.event_details', quiz_uuid=quiz.uuid) }}" 
+             class="action-button resubmit card-action-button">
+            Resubmit Payment
+          </a>
+        {% else %}
+          <a href="{{ url_for('events.event_details', quiz_uuid=quiz.uuid) }}" 
+             class="action-button register-pay card-action-button">
+            Register Now
+          </a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}

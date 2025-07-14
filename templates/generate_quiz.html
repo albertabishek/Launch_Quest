@@ -1,0 +1,488 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate a New Quiz{% endblock %}
+
+{% block styles %}
+<style>
+  :root {
+    --primary: #8a2be2;
+    --primary-light: #9c4dff;
+    --secondary: #5e17eb;
+    --accent: #ff6b6b;
+    --dark: #121220;
+    --darker: #0c0c18;
+    --light: #f8f9fa;
+    --gray: #a0a0c0;
+    --card-bg: rgba(26, 26, 46, 0.7);
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --success: #28a745;
+  }
+
+  .generate-quiz-container {
+    max-width: 800px;
+    margin: 6rem auto 3rem;
+    padding: 2rem;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .page-header h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .page-header p {
+    color: var(--gray);
+  }
+
+  .progress-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+  .progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 4px;
+    width: 100%;
+    background-color: var(--glass-border);
+    z-index: 1;
+  }
+  .progress-bar .progress {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    z-index: 2;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+  .step {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+  }
+  .step .step-circle {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: var(--darker);
+    border: 2px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s ease;
+    font-weight: 600;
+  }
+  .step p {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+    color: var(--gray);
+    transition: color 0.4s ease;
+  }
+  .step.active .step-circle {
+    border-color: var(--primary);
+    background-color: var(--primary);
+    color: white;
+    transform: scale(1.1);
+  }
+  .step.active p {
+    color: var(--light);
+  }
+
+  .form-step {
+    display: none;
+    animation: slideIn 0.5s forwards;
+  }
+  .form-step.active {
+    display: block;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  .form-group label, .form-group .label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--light);
+  }
+  .form-group .description {
+      font-size: 0.85rem;
+      color: var(--gray);
+      margin-top: -0.25rem;
+      margin-bottom: 0.5rem;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 10px;
+    background: rgba(20, 20, 36, 0.5);
+    border: 1px solid var(--glass-border);
+    color: var(--light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
+    outline: none;
+  }
+  .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0a0c0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+  }
+
+  .checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+  }
+  .checkbox-item {
+      background: rgba(20, 20, 36, 0.5);
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      cursor: pointer;
+      border: 1px solid var(--glass-border);
+      transition: all 0.2s ease;
+  }
+  .checkbox-item:hover {
+      background: rgba(20, 20, 36, 0.8);
+  }
+  .checkbox-item input[type="checkbox"] {
+      height: 1.2em;
+      width: 1.2em;
+      accent-color: var(--primary);
+  }
+
+  .switch-field {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+  }
+  .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+  }
+  .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+  }
+  .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #333;
+      transition: .4s;
+      border-radius: 34px;
+  }
+  .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+  }
+  input:checked + .slider {
+      background-color: var(--primary);
+  }
+  input:checked + .slider:before {
+      transform: translateX(26px);
+  }
+
+  .form-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2.5rem;
+  }
+  .form-btn {
+    padding: 0.8rem 1.8rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .btn-next {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    color: white;
+  }
+  .btn-prev {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--light);
+  }
+  .form-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  .form-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+  }
+
+  .errors {
+    color: var(--accent);
+    list-style-type: none;
+    padding: 0;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .field-locked {
+      opacity: 0.6;
+      position: relative;
+  }
+  .field-locked::after {
+      content: 'Upgrade to Unlock';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: not-allowed;
+  }
+  .field-locked label {
+      text-decoration: line-through;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="generate-quiz-container">
+  <div class="page-header">
+    <h2>Create Your Quiz</h2>
+    <p>Follow these steps to generate a powerful, engaging quiz with AI.</p>
+  </div>
+  
+  <div class="progress-bar">
+    <div class="progress" id="progress"></div>
+    <div class="step active" data-title="Concept"><div class="step-circle">1</div><p>Concept</p></div>
+    <div class="step" data-title="Structure"><div class="step-circle">2</div><p>Structure</p></div>
+    <div class="step" data-title="Rules"><div class="step-circle">3</div><p>Rules</p></div>
+    <div class="step" data-title="Design"><div class="step-circle">4</div><p>Design</p></div>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" id="quiz-form" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="form-step active">
+      <div class="form-group">{{ form.title.label }} {{ form.title(class="form-input", placeholder="e.g., World History Trivia") }}</div>
+      <div class="form-group">{{ form.topic.label }} {{ form.topic(class="form-input", placeholder="e.g., Ancient Rome, Python Basics") }}</div>
+      <div class="form-group">{{ form.language.label }} {{ form.language(class="form-select") }}</div>
+      <div class="form-buttons">
+        <button type="button" class="form-btn btn-next">Next <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="form-step">
+      <div class="form-group">{{ form.num_questions.label }} {{ form.num_questions(class="form-select") }}</div>
+      <div class="form-group">
+        <span class="label">{{ form.question_types.label }}</span>
+        <div class="checkbox-group">
+            {% for subfield in form.question_types %}
+            <label class="checkbox-item">
+                {{ subfield(class="form-checkbox") }}
+                <span>{{ subfield.label.text }}</span>
+            </label>
+            {% endfor %}
+        </div>
+        {% if form.question_types.errors %}<ul class="errors">{% for error in form.question_types.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      <div class="form-group">{{ form.difficulty.label }} {{ form.difficulty(class="form-select") }}</div>
+      <div class="form-group">{{ form.generation_type.label }} {{ form.generation_type(class="form-select") }}</div>
+      <div class="form-buttons">
+        <button type="button" class="form-btn btn-prev"><i class="fas fa-arrow-left"></i> Previous</button>
+        <button type="button" class="form-btn btn-next">Next <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="form-step">
+    <div class="form-group">{{ form.time_limit.label }} {{ form.time_limit(class="form-input", placeholder="0 for no limit") }}</div>
+    <div class="form-group">{{ form.max_attempts.label }} {{ form.max_attempts(class="form-input") }}</div>
+    
+    <div class="form-group {% if is_free_plan %}field-locked{% endif %}">
+        {{ form.quiz_type.label }} {{ form.quiz_type(class="form-select", disabled=is_free_plan) }}
+        {% if is_free_plan %}<input type="hidden" name="quiz_type" value="personal">{% endif %}
+    </div>
+
+    <div id="event-fields" style="display:none;">
+        <div class="form-group">{{ form.max_users.label }} {{ form.max_users(class="form-input") }}</div>
+        <div class="form-group">
+            {{ form.start_time.label }}
+            <p class="description">Please enter the start time in UTC.</p>
+            {{ form.start_time(class="form-input") }}
+        </div>
+        <div class="form-group">
+            {{ form.registration_end_time.label }}
+            <p class="description">Please enter the registration end time in UTC.</p>
+            {{ form.registration_end_time(class="form-input") }}
+        </div>
+        <div class="form-group">{{ form.password.label }} {{ form.password(class="form-input", placeholder="Optional: Protect with a password") }}</div>
+        
+        <div class="form-group">
+            <div class="label">Paid Event?</div>
+            <div class="switch-field">
+                {{ form.is_paid_event(class="switch-input") }}
+            </div>
+        </div>
+        <div id="paid-event-fields" style="display:none;">
+            <div class="form-group">{{ form.fee_amount.label }} {{ form.fee_amount(class="form-input", placeholder="e.g., 100") }}</div>
+            <div class="form-group">{{ form.qr_code.label }} {{ form.qr_code(class="form-input") }}</div>
+            <div class="form-group">{{ form.num_winners.label }} {{ form.num_winners(class="form-input", placeholder="e.g., 3") }}</div>
+            <div class="form-group">{{ form.winner_prizes.label }} {{ form.winner_prizes(class="form-input", placeholder="e.g., 1000,500,200") }}</div>
+            <div class="form-group">{{ form.prize_currency.label }} {{ form.prize_currency(class="form-select") }}</div>
+        </div>
+      </div>
+      
+      <div class="form-buttons">
+        <button type="button" class="form-btn btn-prev"><i class="fas fa-arrow-left"></i> Previous</button>
+        <button type="button" class="form-btn btn-next">Next <i class="fas fa-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="form-step">
+      <div class="form-group">
+        {{ form.tags.label }}
+        <p class="description">Separate tags with commas. Helps users find your event.</p>
+        {{ form.tags(class="form-input", placeholder="e.g., tech, programming, python") }}
+      </div>
+      
+      <div class="form-group {% if is_free_plan %}field-locked{% endif %}">
+        {{ form.interface_type.label }}
+        {{ form.interface_type(class="form-select", disabled=is_free_plan) }}
+        {% if is_free_plan %}<input type="hidden" name="interface_type" value="default">{% endif %}
+      </div>
+      
+      <div id="custom-interface-fields" style="display:none;">
+        <div class="form-group">{{ form.background_color.label }} {{ form.background_color(class="form-input", type="color") }}</div>
+        <div class="form-group">{{ form.background_image.label }} {{ form.background_image(class="form-input") }}</div>
+        <div class="form-group">{{ form.logo.label }} {{ form.logo(class="form-input") }}</div>
+      </div>
+
+      <div class="form-buttons">
+        <button type="button" class="form-btn btn-prev"><i class="fas fa-arrow-left"></i> Previous</button>
+        {{ form.submit(class="form-btn btn-next", value="✨ Generate Quiz") }}
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const prevBtns = document.querySelectorAll(".btn-prev");
+    const nextBtns = document.querySelectorAll(".btn-next");
+    const progress = document.getElementById("progress");
+    const formSteps = document.querySelectorAll(".form-step");
+    const progressSteps = document.querySelectorAll(".progress-bar .step");
+
+    let formStepsNum = 0;
+
+    nextBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            formStepsNum++;
+            updateFormSteps();
+            updateProgressBar();
+        });
+    });
+
+    prevBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            formStepsNum--;
+            updateFormSteps();
+            updateProgressBar();
+        });
+    });
+
+    function updateFormSteps() {
+        formSteps.forEach(step => step.classList.remove("active"));
+        formSteps[formStepsNum].classList.add("active");
+    }
+
+    function updateProgressBar() {
+        progressSteps.forEach((step, idx) => {
+            step.classList.toggle("active", idx <= formStepsNum);
+        });
+        progress.style.width = ((formStepsNum) / (progressSteps.length - 1)) * 100 + "%";
+    }
+
+    const quizTypeSelect = document.getElementById('quiz_type');
+    const eventFields = document.getElementById('event-fields');
+    const isPaidEventSwitch = document.getElementById('is_paid_event');
+    const paidEventFields = document.getElementById('paid-event-fields');
+    const interfaceTypeSelect = document.getElementById('interface_type');
+    const customInterfaceFields = document.getElementById('custom-interface-fields');
+    
+    function toggleFields() {
+        const isEvent = quizTypeSelect.value === 'event';
+        eventFields.style.display = isEvent ? 'block' : 'none';
+        isPaidEventSwitch.disabled = !isEvent;
+        if (!isEvent) {
+            isPaidEventSwitch.checked = false;
+        }
+        
+        const isPaid = isPaidEventSwitch.checked && isEvent;
+        paidEventFields.style.display = isPaid ? 'block' : 'none';
+        
+        const isCustom = interfaceTypeSelect.value === 'custom';
+        customInterfaceFields.style.display = isCustom ? 'block' : 'none';
+    }
+
+    quizTypeSelect.addEventListener('change', toggleFields);
+    isPaidEventSwitch.addEventListener('change', toggleFields);
+    interfaceTypeSelect.addEventListener('change', toggleFields);
+
+    toggleFields();
+});
+</script>
+{% endblock %}

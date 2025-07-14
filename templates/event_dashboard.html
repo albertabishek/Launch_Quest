@@ -1,0 +1,827 @@
+{% extends 'base.html' %}
+
+{% block title %}Event Dashboard - {{ quiz.title }}{% endblock %}
+
+{% block styles %}
+<style>
+  :root {
+    --primary: #8a2be2;
+    --primary-light: #9c4dff;
+    --secondary: #5e17eb;
+    --accent: #ff6b6b;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545 myocytes
+
+    --dark: #121220;
+    --darker: #0c0c18;
+    --light: #f8f9fa;
+    --gray: #a0a0c0;
+    --card-bg: rgba(26, 26, 46, 0.7);
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.2);
+  }
+  
+  .dashboard-container {
+    max-width: 1400px;
+    margin: 5rem auto 2rem;
+    padding: 0 1.5rem;
+  }
+  
+  .dashboard-header {
+    background: linear-gradient(135deg, var(--darker), var(--dark));
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    animation: fadeIn 0.5s ease-out;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .dashboard-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+  
+  .event-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .stat-card {
+    flex: 1;
+    min-width: 200px;
+    max-width: 300px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(138, 43, 226, 0.3);
+  }
+  
+  .stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: var(--primary);
+    text-shadow: 0 0 10px rgba(138, 43, 226, 0.4);
+  }
+  
+  .stat-label {
+    font-size: 1.1rem;
+    color: var(--gray);
+  }
+  
+  .dashboard-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+  
+  .action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 1.8rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+  
+  .action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    z-index: -1;
+    transition: transform 0.5s ease;
+  }
+  
+  .action-button:hover::before {
+    transform: scale(1.05);
+  }
+  
+  .action-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(138, 43, 226, 0.4);
+  }
+  
+  .action-button.export {
+    background: linear-gradient(90deg, #2196F3, #21CBF3);
+  }
+  
+  .action-button.export::before {
+    background: linear-gradient(90deg, #2196F3, #21CBF3);
+  }
+  
+  .registrations-section {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-top: 2rem;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+  
+  .section-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--light);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  
+  .section-title i {
+    color: var(--primary);
+    font-size: 1.5rem;
+  }
+  
+  .registrations-table-container {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+  }
+  
+  .registrations-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+  }
+  
+  .registrations-table th {
+    background: rgba(30, 30, 46, 0.8);
+    padding: 1.2rem 1rem;
+    text-align: left;
+    color: var(--primary-light);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+  }
+  
+  .registrations-table tr {
+    border-bottom: 1px solid var(--glass-border);
+    transition: background 0.3s ease;
+  }
+  
+  .registrations-table tr:last-child {
+    border-bottom: none;
+  }
+  
+  .registrations-table tr:hover {
+    background: rgba(138, 43, 226, 0.05);
+  }
+  
+  .registrations-table td {
+    padding: 1.2rem 1rem;
+    color: var(--light);
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  .status-badge.verified {
+    background: rgba(40, 167, 69, 0.2);
+    color: #7dff9e;
+    border: 1px solid rgba(40, 167, 69, 0.4);
+  }
+  
+  .status-badge.pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffd95e;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+  }
+  
+  .status-badge.rejected {
+    background: rgba(220, 53, 69, 0.2);
+    color: #ff7d8a;
+    border: 1px solid rgba(220, 53, 69, 0.4);
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+  }
+  
+  .action-icon.verify {
+    background: rgba(40, 167, 69, 0.2);
+    color: #7dff9e;
+    border: 1px solid rgba(40, 167, 69, 0.4);
+  }
+  
+  .action-icon.verify:hover {
+    background: rgba(40, 167, 69, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  .action-icon.reject {
+    background: rgba(220, 53, 69, 0.2);
+    color: #ff7d8a;
+    border: 1px solid rgba(220, 53, 69, 0.4);
+  }
+  
+  .action-icon.reject:hover {
+    background: rgba(220, 53, 69, 0.3);
+    transform: translateY(-2px);
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+  }
+  
+  .page-item {
+    display: flex;
+  }
+  
+  .page-link {
+    padding: 0.6rem 1rem;
+    background: rgba(30, 30, 46, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--light);
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .page-link:hover {
+    background: rgba(138, 43, 226, 0.2);
+    border-color: var(--primary);
+  }
+  
+  .page-link.active {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-color: transparent;
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+  }
+  
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .modal-content {
+    background: var(--darker);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    border: 1px solid var(--primary);
+    box-shadow: 0 10px 30px rgba(138, 43, 226, 0.4);
+    transform: translateY(20px);
+    transition: transform 0.4s ease;
+  }
+  
+  .modal-overlay.active .modal-content {
+    transform: translateY(0);
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .modal-title {
+    font-size: 1.5rem;
+    color: var(--light);
+  }
+  
+  .close-modal {
+    background: none;
+    border: none;
+    color: var(--gray);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  
+  .close-modal:hover {
+    color: var(--primary);
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--light);
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 10px;
+    background: rgba(20, 20, 36, 0.5);
+    border: 1px solid var(--glass-border);
+    color: var(--light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
+    outline: none;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .btn {
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+  }
+  
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--light);
+    border: 1px solid var(--glass-border);
+  }
+  
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 992px) {
+    .dashboard-title {
+      font-size: 2rem;
+    }
+    
+    .event-stats {
+      gap: 1rem;
+    }
+    
+    .stat-card {
+      min-width: 160px;
+      padding: 1.2rem;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .dashboard-container {
+      margin: 4rem auto 1.5rem;
+      padding: 0 1rem;
+    }
+    
+    .dashboard-header {
+      padding: 1.5rem;
+      border-radius: 16px;
+    }
+    
+    .dashboard-title {
+      font-size: 1.8rem;
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+    }
+    
+    .registrations-section {
+      padding: 1.5rem;
+    }
+    
+    .registrations-table th,
+    .registrations-table td {
+      padding: 1rem 0.8rem;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .dashboard-title {
+      font-size: 1.6rem;
+    }
+    
+    .event-stats {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .stat-card {
+      width: 100%;
+      max-width: 100%;
+    }
+    
+    .dashboard-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .action-button {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .section-title {
+      font-size: 1.3rem;
+    }
+    
+    .registrations-table th {
+      font-size: 0.8rem;
+    }
+    
+    .registrations-table td {
+      font-size: 0.9rem;
+      padding: 0.8rem 0.5rem;
+    }
+    
+    .status-badge {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+    }
+  }
+  
+  @media (max-width: 400px) {
+    .dashboard-title {
+      font-size: 1.4rem;
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+    }
+    
+    .section-title {
+      font-size: 1.2rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">{{ quiz.title }} Dashboard</h1>
+    <div class="event-stats">
+      <div class="stat-card">
+        <div class="stat-value">{{ reg_count }}</div>
+        <div class="stat-label">Registered Participants</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ verified_count }}</div>
+        <div class="stat-label">Verified Participants</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ pending_count }}</div>
+        <div class="stat-label">Pending Registrations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ rejected_count }}</div>
+        <div class="stat-label">Rejected Registrations</div>
+      </div>
+    </div>
+    <div class="dashboard-actions">
+      <a href="{{ url_for('events.export_registrations', quiz_uuid=quiz.uuid) }}" 
+         class="action-button export">
+        <i class="fas fa-file-export"></i> Export Registrations
+      </a>
+    </div>
+  </div>
+  
+  <div class="registrations-section">
+    <h2 class="section-title">
+      <i class="fas fa-users"></i> Participant Registrations
+    </h2>
+    
+    <div class="registrations-table-container">
+      <table class="registrations-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Registration Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for reg in registrations.items %}
+          <tr>
+            <td>{{ reg.name }}</td>
+            <td>{{ reg.email }}</td>
+            <td>{{ reg.phone }}</td>
+            <td>{{ reg.created_at | localtime(current_user.timezone) }}</td>
+            <td>
+              <span class="status-badge {{ reg.status }}">
+                {{ reg.status | capitalize }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                {% if reg.status == 'pending' %}
+                <div class="action-icon verify" title="Verify" data-reg-id="{{ reg.id }}">
+                  <i class="fas fa-check"></i>
+                </div>
+                <div class="action-icon reject" title="Reject" data-reg-id="{{ reg.id }}">
+                  <i class="fas fa-times"></i>
+                </div>
+                {% elif reg.status == 'rejected' %}
+                <div class="action-icon verify" title="Re-verify" data-reg-id="{{ reg.id }}">
+                  <i class="fas fa-check"></i>
+                </div>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="pagination">
+      {% if registrations.has_prev %}
+        <div class="page-item">
+          <a class="page-link" href="{{ url_for('events.event_dashboard', quiz_uuid=quiz.uuid, page=registrations.prev_num) }}">
+            « Prev
+          </a>
+        </div>
+      {% endif %}
+      
+      {% for page_num in registrations.iter_pages() %}
+        {% if page_num %}
+          <div class="page-item">
+            <a class="page-link {% if page_num == registrations.page %}active{% endif %}" 
+               href="{{ url_for('events.event_dashboard', quiz_uuid=quiz.uuid, page=page_num) }}">
+              {{ page_num }}
+            </a>
+          </div>
+        {% else %}
+          <div class="page-item disabled">
+            <span class="page-link">...</span>
+          </div>
+        {% endif %}
+      {% endfor %}
+      
+      {% if registrations.has_next %}
+        <div class="page-item">
+          <a class="page-link" href="{{ url_for('events.event_dashboard', quiz_uuid=quiz.uuid, page=registrations.next_num) }}">
+            Next »
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reject-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Reject Registration</h3>
+      <button class="close-modal">×</button>
+    </div>
+    <form id="reject-form" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="registration_id" id="modal-reg-id">
+      
+      <div class="form-group">
+        <label for="reason" class="form-label">Reason for Rejection</label>
+        <textarea class="form-control" id="reason" name="reason" rows="4" required
+                  placeholder="Please provide a reason for rejecting this registration..."></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Reject Registration</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Modal functionality
+  const rejectModal = document.getElementById('reject-modal');
+  const closeModalButtons = document.querySelectorAll('.close-modal');
+  const rejectIcons = document.querySelectorAll('.action-icon.reject');
+  const verifyIcons = document.querySelectorAll('.action-icon.verify');
+  const modalRegId = document.getElementById('modal-reg-id');
+  const rejectForm = document.getElementById('reject-form');
+  
+  // Open reject modal
+  rejectIcons.forEach(icon => {
+    icon.addEventListener('click', function() {
+      const regId = this.getAttribute('data-reg-id');
+      modalRegId.value = regId;
+      rejectModal.classList.add('active');
+    });
+  });
+  
+  // Verify action
+  verifyIcons.forEach(icon => {
+    icon.addEventListener('click', function() {
+      const regId = this.getAttribute('data-reg-id');
+      
+      // Show loading state
+      const originalHTML = icon.innerHTML;
+      icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      icon.style.pointerEvents = 'none';
+      
+      // CORRECTED: Create a form and submit it, which is simpler for handling redirects
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/verify_payment/${regId}`; // Build URL dynamically
+      
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'csrf_token';
+      csrfInput.value = "{{ csrf_token() }}";
+      form.appendChild(csrfInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+    });
+  });
+  
+  // Close modal
+  closeModalButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      rejectModal.classList.remove('active');
+    });
+  });
+  
+  // Close modal when clicking outside content
+  rejectModal.addEventListener('click', function(e) {
+    if (e.target === rejectModal) {
+      rejectModal.classList.remove('active');
+    }
+  });
+  
+  // Submit reject form via Fetch API
+  rejectForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    submitBtn.disabled = true;
+    
+    const formData = new FormData(this);
+    const regId = formData.get('registration_id');
+    // CORRECTED: Build the URL for the fetch request dynamically
+    const actionUrl = `/reject_registration/${regId}`;
+    
+    fetch(actionUrl, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': formData.get('csrf_token') // CSRF handled by form data
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        rejectModal.style.display = 'none';
+        toastr.success('Registration rejected successfully. Page will reload.');
+        setTimeout(() => {
+           location.reload();
+        }, 1500);
+      } else {
+        toastr.error(data.error || 'Failed to reject registration');
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+      }
+    })
+    .catch(error => {
+      toastr.error('An error occurred. Please try again.');
+      submitBtn.innerHTML = originalBtnText;
+      submitBtn.disabled = false;
+    });
+  });
+  
+  // Socket.IO for real-time updates
+  {% if quiz %}
+  const socket = io(); // Connect to the main namespace
+  const quizId = "{{ quiz.id }}";
+  
+  socket.on('connect', () => {
+    socket.emit('join_quiz', { quizId: quizId });
+  });
+  
+  socket.on('update_registration_count', (data) => {
+    if (data.quiz_id == quizId) {
+       // Just reload the page to get all stats and table info updated simply
+       toastr.info('A registration has been updated. Reloading...');
+       setTimeout(() => window.location.reload(), 1500);
+    }
+  });
+  {% endif %}
+});
+</script>
+{% endblock %}

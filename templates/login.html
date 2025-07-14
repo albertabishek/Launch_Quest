@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - RallyMind{% endblock %}
+
+{% block styles %}
+<style>
+    .form-wrapper {
+        min-height: calc(100vh - 80px); /* Full viewport height minus header */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        background: linear-gradient(135deg, #0F0F2A 0%, #140C1F 100%);
+        margin-top: 5rem;
+    }
+    
+    .form-container {
+        width: 100%;
+        max-width: 420px;
+        background: rgba(30, 41, 59, 0.7);
+        border: 1px solid rgba(138, 43, 226, 0.3);
+        border-radius: 1.5rem;
+        backdrop-filter: blur(12px);
+        padding: 2.5rem;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .form-header h2 {
+        font-family: 'Manrope', sans-serif;
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #8A2BE2 0%, #E6007A 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* --- FIX for Google Button --- */
+    .google-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem; /* Space between logo and text */
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 0.75rem;
+        color: #E0E7FF;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .google-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(138, 43, 226, 0.4);
+    }
+    .google-btn svg {
+        width: 1.25rem; /* 20px */
+        height: 1.25rem; /* 20px */
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        color: #64748B;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    .divider::before, .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .divider span {
+        padding: 0 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #E0E7FF;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        color: #FFFFFF;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: #8A2BE2;
+        box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.3);
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 0.875rem;
+        background: linear-gradient(90deg, #8A2BE2 0%, #E6007A 100%);
+        border-radius: 0.5rem;
+        color: white;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .submit-btn:hover {
+        box-shadow: 0 8px 20px rgba(138, 43, 226, 0.3);
+        transform: translateY(-2px);
+    }
+    .form-footer a {
+        color: #8A2BE2;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .form-footer a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-wrapper">
+    <div class="form-container">
+        <div class="form-header">
+            <h2>Welcome Back!</h2>
+            <p>Log in to continue your journey.</p>
+        </div>
+
+        <a href="{{ url_for('oauth.login_google') }}" class="google-btn">
+            <svg viewBox="0 0 48 48">
+                <g><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v8.51h12.8c-.57 3.02-2.31 5.45-4.72 7.18l7.27 5.62C42.96 37.26 46.98 31.45 46.98 24.55z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.82l-7.27-5.62c-2.11 1.45-4.82 2.3-7.62 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></g>
+            </svg>
+            <span>Continue with Google</span>
+        </a>
+
+        <div class="divider"><span>OR</span></div>
+
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="email" class="form-label">{{ form.email.label }}</label>
+                {{ form.email(class="form-input", placeholder="you@example.com", autocomplete="email") }}
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">{{ form.password.label }}</label>
+                <div class="relative">
+                    {{ form.password(class="form-input", placeholder="••••••••") }}
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">{{ form.submit.label }}</button>
+        </form>
+        
+        <p class="text-center text-sm text-gray-text mt-6">
+            Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
